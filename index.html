@@ -152,7 +152,6 @@
   .el .sym { font: 700 clamp(2rem, 7vw, 2.7rem)/1 var(--display); color: var(--c, var(--signal)); }
   .el .nm { font-size: 11.5px; color: var(--ink-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .el.glow .sym { text-shadow: 0 0 6px var(--c), 0 0 18px var(--c); animation: flicker 4s infinite; }
-  .el.hat::before { content: "^"; position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font: 700 30px var(--display); color: var(--c); }
   @keyframes tilein { from { opacity: .2; transform: translateY(8px) rotate(-3deg); } to { opacity: 1; transform: none; } }
   @keyframes flicker { 0%, 92%, 100% { opacity: 1; } 94% { opacity: .55; } 96% { opacity: 1; } 97% { opacity: .7; } }
   .el-picker { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
@@ -230,9 +229,9 @@
 <script>
 (() => {
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const PHOTOS = ['stage-kick','medals-table','istanbul','rowing-pier','portrait','salt-flat','campus-friends','barre','ski','rowing-double','stage-arch','desert','rowing-event','friends','cappadocia','rowing-podium-2','studio','wheat','stage-red','festival','trophies'];
+  const PHOTOS = ['stage-kick','istanbul','barre','cappadocia','stage-arch','desert','rowing-pier','studio','ski','stage-red','salt-flat','festival','rowing-double','portrait'];
   const src = k => 'img/' + k + '.jpg';
-  PHOTOS.concat(['thesis-larva', 'thesis-tracking', 'thesis-tecnico', 'thesis-symposium']).forEach(k => { const i = new Image(); i.src = src(k); });
+  
 
   /* 4 x 8 board; each letter is one piece (T, S, Z, L-trominoes, dominoes, singles) */
   const MAP = [
@@ -245,7 +244,7 @@
     a: { photo: 'studio', c: 'yellow', label: 'Experience', sec: 'experience', corner: 'tl' },
     b: { photo: 'barre', c: 'pink' },
     c: { photo: 'istanbul', c: 'sand', label: 'Education', sec: 'education', corner: 'tr' },
-    d: { photo: 'tulips', pool: ['tulips', 'thesis-larva', 'thesis-tracking', 'thesis-tecnico', 'thesis-symposium'], c: 'blue', label: 'Thesis', sec: 'thesis', corner: 'br', dark: 1 },
+    d: { photo: 'tulips', c: 'blue', label: 'Thesis', sec: 'thesis', corner: 'br', dark: 1 },
     e: { photo: 'portrait', c: 'green', label: 'Hobbies', sec: 'hobbies', corner: 'bl' },
     f: { photo: 'desert', c: 'orange' },
     g: { photo: 'wheat', c: 'violet', label: 'Contact', sec: 'contact', corner: 'br', dark: 1 },
@@ -255,6 +254,19 @@
     k: { photo: 'festival', c: 'blue', label: 'About', sec: 'about', corner: 'bl', dark: 1 },
     l: { photo: 'friends', c: 'brown' },
   };
+  // labelled pieces only show photos that match their section; unlabelled pieces share PHOTOS
+  const POOLS = {
+    a: ['accenture-1', 'accenture-2', 'accenture-3', 'accenture-4'],
+    c: ['thesis-tecnico', 'thesis-symposium'],
+    d: ['thesis-larva', 'thesis-tracking'],
+    e: ['stage-arch', 'rowing-double', 'cappadocia', 'barre', 'rowing-pier', 'ski'],
+    g: ['tulips', 'wheat'],
+    h: ['orger-lab', 'accenture-2'],
+    i: ['trophies', 'medals-table', 'rowing-podium-2', 'rowing-event'],
+    k: ['friends', 'campus-friends', 'tulips'],
+  };
+  Object.entries(POOLS).forEach(([id, pool]) => { PIECES[id].pool = pool; });
+  [...new Set(PHOTOS.concat(...Object.values(POOLS)))].forEach(k => { const i = new Image(); i.src = src(k); });
   const OPEN_AT_START = ['e', 'h', 'd'];
   const MAX_OPEN = 3;
 
@@ -566,12 +578,12 @@
             note: 'Iodine is the contrast agent that makes blood vessels visible in a CT scan. Neon glows when you put energy into it. Sulfur holds proteins together.' },
           { tiles: [
               { z: 49, s: 'In', n: 'Indium', m: '114.82', c: 'var(--signal)' },
-              { z: 99, s: 'Es', n: 'Einsteinium', m: '(252)', c: 'var(--heat)', hat: true } ],
-            note: 'Indium is in every touchscreen you have used today. Einsteinium was named after Einstein. Two elements, one circumflex.' },
+              { z: 99, s: 'Es', n: 'Einsteinium', m: '(252)', c: 'var(--heat)' } ],
+            note: 'Indium is in every touchscreen you have used today. Einsteinium was named after Einstein. Two elements, one name.' },
           { tiles: [
               { z: 53, s: 'I', n: 'Iodine', m: '126.90', c: 'var(--signal)' },
               { z: 7, s: 'N', n: 'Nitrogen', m: '14.007', c: 'var(--heat)' },
-              { z: 99, s: 'Es', n: 'Einsteinium', m: '(252)', c: 'var(--yellow)', hat: true } ],
+              { z: 99, s: 'Es', n: 'Einsteinium', m: '(252)', c: 'var(--yellow)' } ],
             note: 'Iodine for imaging, nitrogen for the air we breathe, einsteinium for the ambition. 53 + 7 + 99 = 159.' },
         ];
         const spell = i => {
