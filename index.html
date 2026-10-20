@@ -123,6 +123,43 @@
   .shots.one { max-width: 640px; }
   @media (max-width: 640px) { .xp-row { grid-template-columns: 1fr; } }
 
+  /* experience as a DNA helix: the strands run down the middle, each role is a base pair node */
+  .hx { list-style: none; margin: 0; padding: 0; }
+  .hx { position: relative; }
+  .hx-row { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 120px minmax(0, 1fr); }
+  @media (min-width: 701px) { .hx-row + .hx-row { margin-top: -70px; } }
+  .hx-svg { position: absolute; top: 0; left: 50%; width: 120px; transform: translateX(-50%); overflow: visible; pointer-events: none; }
+  .hx-svg path, .hx-svg line { fill: none; }
+  .hx-s1 { stroke: var(--green); stroke-width: 3; }
+  .hx-s2 { stroke: var(--pink); stroke-width: 3; }
+  .hx-svg line { stroke: var(--line); stroke-width: 2; }
+  .hx-turn { transform-box: view-box; transform-origin: 50% 50%; animation: hx-spin 6s ease-in-out infinite alternate; }
+  @keyframes hx-spin { from { transform: scaleX(1); } to { transform: scaleX(-1); } }
+  .hx-node { position: absolute; left: 50%; top: 86px; width: 22px; height: 22px; margin: -11px 0 0 -11px; background: var(--a); border: 3px solid var(--bg); box-shadow: 0 0 0 1.5px var(--a); z-index: 1; }
+  .hx-row.now .hx-node::after { content: ""; position: absolute; inset: -9px; border: 1.5px solid var(--a); animation: hx-ping 2.2s ease-out infinite; }
+  @keyframes hx-ping { from { opacity: .9; transform: scale(.6); } to { opacity: 0; transform: scale(1.5); } }
+  .hx-card { grid-column: 1; grid-row: 1; padding: 34px 0; text-align: right; align-self: center; }
+  .hx-row.r .hx-card { grid-column: 3; text-align: left; }
+  .hx-card .when { display: inline-block; font: 12px/1.4 var(--mono); color: var(--ink-dim); padding: 3px 8px; border: 1.5px solid var(--a); margin-bottom: 12px; font-variant-numeric: tabular-nums; }
+  .hx-card .when b { color: var(--a); font-weight: 500; }
+  .hx-card h3 { font: 700 clamp(1.15rem, 2.2vw, 1.5rem)/1.2 var(--display); margin: 0 0 6px; }
+  .hx-card .org { font: 12px/1.4 var(--mono); color: var(--a); margin: 0 0 10px; text-transform: uppercase; letter-spacing: .05em; }
+  .hx-card .org a { color: inherit; }
+  .hx-card p { margin: 0 0 0 auto; font-size: 15px; line-height: 1.6; max-width: 44ch; }
+  .hx-row.r .hx-card p { margin: 0; }
+  .hx-card p strong { font-weight: 600; }
+  .hx-card .shots { justify-content: flex-end; }
+  .hx-row.r .hx-card .shots { justify-content: flex-start; }
+  @media (max-width: 700px) {
+    .hx-row { grid-template-columns: 64px minmax(0, 1fr); }
+    .hx-svg { left: 32px; width: 64px; }
+    .hx-node { left: 32px; top: 78px; }
+    .hx-card, .hx-row.r .hx-card { grid-column: 2; text-align: left; padding: 26px 0 26px 14px; }
+    .hx-card p { margin: 0; }
+    .hx-card .shots { justify-content: flex-start; }
+  }
+  @media (prefers-reduced-motion: reduce) { .hx-turn, .hx-row.now .hx-node::after { animation: none; } }
+
   /* thesis */
   .thesis-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(200px, 280px); gap: 40px; align-items: start; }
   .vid { margin: 0; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); background: #000; }
@@ -471,17 +508,47 @@
   const S = {
     experience: { t: 'Experience', bg: 'var(--bg)', dark: true, html: () => `
       <p class="lead">From national health policy to deep-learning pipelines: roles across research, regulated industry and consulting.</p>
-      <div class="xp">
-        ${XP.map(x => `<div class="xp-row" style="--a: var(--${x.a})">
-          <span class="when"><i></i>${x.when}</span>
-          <div>
+      <ol class="hx" id="hx" aria-label="Experience timeline, most recent first">
+        <svg class="hx-svg" aria-hidden="true"><g class="hx-turn"></g></svg>
+        ${XP.map((x, n) => `<li class="hx-row${n % 2 ? ' r' : ''}${n === 0 ? ' now' : ''}" style="--a: var(--${x.a})">
+          <span class="hx-node" aria-hidden="true"></span>
+          <div class="hx-card">
+            <span class="when">${n === 0 ? '<b>Now</b> · ' : ''}${x.when}</span>
             <h3>${x.h}</h3>
             <p class="org">${x.org}</p>
             <p>${x.p}</p>
-            ${x.shots ? `<div class="shots${x.wide ? ' one' : ''}">${x.shots.map(k => { const r = DIMS[k][0] / DIMS[k][1]; return `<div style="flex: ${r.toFixed(3)} 1 ${Math.round(r * 130)}px">${pic(k)}</div>`; }).join('')}</div>` : ''}
+            ${x.shots ? `<div class="shots">${x.shots.map(k => { const r = DIMS[k][0] / DIMS[k][1]; return `<div style="flex: ${r.toFixed(3)} 1 ${Math.round(r * 90)}px">${pic(k)}</div>`; }).join('')}</div>` : ''}
           </div>
-        </div>`).join('')}
-      </div>` },
+        </li>`).join('')}
+      </ol>`,
+      init() {
+        // draw the double helix through the role nodes: strands cross at every node, rungs in between
+        const ol = document.getElementById('hx'), svg = ol.querySelector('.hx-svg'), g = svg.querySelector('g');
+        const draw = () => {
+          if (!ol.isConnected) { removeEventListener('resize', draw); return; }
+          const box = ol.getBoundingClientRect(), W = svg.getBoundingClientRect().width, A = W * 0.36, cx = W / 2;
+          const ys = [...ol.querySelectorAll('.hx-node')].map(n => { const r = n.getBoundingClientRect(); return r.top + r.height / 2 - box.top; });
+          const stops = [0, ...ys, box.height];
+          svg.setAttribute('viewBox', `0 0 ${W} ${box.height}`); svg.setAttribute('height', box.height);
+          // several half-turns per gap (about one every 110px) so it reads as DNA; any whole number of half-turns lands on a crossing at the node
+          const segs = stops.slice(1).map((y1, i) => ({ y0: stops[i], d: y1 - stops[i], n: Math.max(1, Math.round((y1 - stops[i]) / 110)) }));
+          let par = 1;
+          segs.forEach(sg => { sg.par = par; if (sg.n % 2) par = -par; });
+          const strand = sgn => segs.map((sg, i) => {
+            const pts = [], steps = sg.n * 16;
+            for (let k = 0; k <= steps; k++) { const t = k / steps; pts.push(`${(cx + sgn * sg.par * A * Math.sin(Math.PI * sg.n * t)).toFixed(1)},${(sg.y0 + sg.d * t).toFixed(1)}`); }
+            return (i ? 'L' : 'M') + pts.join(' L');
+          }).join(' ');
+          const rungs = segs.map(sg => Array.from({ length: sg.n * 3 }, (_, j) => {
+            const t = (j + 0.5) / (sg.n * 3), y = sg.y0 + sg.d * t, w = A * Math.abs(Math.sin(Math.PI * sg.n * t));
+            return w < 6 ? '' : `<line x1="${(cx - w).toFixed(1)}" y1="${y.toFixed(1)}" x2="${(cx + w).toFixed(1)}" y2="${y.toFixed(1)}"/>`;
+          }).join('')).join('');
+          g.innerHTML = rungs + `<path class="hx-s1" d="${strand(1)}"/><path class="hx-s2" d="${strand(-1)}"/>`;
+        };
+        draw();
+        ol.querySelectorAll('img').forEach(im => im.complete || im.addEventListener('load', draw, { once: true }));
+        addEventListener('resize', draw);
+      } },
     thesis: { t: 'Thesis', bg: 'var(--bg)', dark: true, html: () => `
       <div class="twrap"><div class="thesis-row">
         <div>
