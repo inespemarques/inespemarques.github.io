@@ -210,7 +210,7 @@
 
 <header class="top">
   <span class="who">inês marques, biomedical engineer</span>
-  <span class="what">who counted 100,000 neurons in a fish brain smaller than a pinhead</span>
+  <span class="what" id="tagline">who counted 100,000 neurons in a fish brain smaller than a pinhead</span>
   <button type="button" data-open="about">about</button>
 </header>
 
@@ -229,7 +229,25 @@
 <script>
 (() => {
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const PHOTOS = ['stage-kick','istanbul','barre','cappadocia','stage-arch','desert','rowing-pier','studio','ski','stage-red','salt-flat','festival','rowing-double','portrait'];
+  // a different tagline on every visit, never the same one twice in a row
+  const TAGLINES = [
+    'who counted 100,000 neurons in a fish brain smaller than a pinhead',
+    'who went from ballet stages to zebrafish brains to national health data',
+    'who rowed to a national title and now trains neural networks',
+    'who danced at the Royal Albert Hall and now writes Apex',
+    'who taught a computer to tell neurons apart',
+    'who helped redesign Portugal\'s national HIV surveillance system',
+    'who won a hackathon at Nova SBE and studied in three countries',
+  ];
+  (() => {
+    let last = -1;
+    try { last = +(localStorage.getItem('tagline') ?? -1); } catch (e) {}
+    let i = Math.floor(Math.random() * (TAGLINES.length - 1));
+    if (i >= last && last >= 0) i++;
+    document.getElementById('tagline').textContent = TAGLINES[i];
+    try { localStorage.setItem('tagline', i); } catch (e) {}
+  })();
+  const PHOTOS = ['stage-kick','istanbul','desert','studio','stage-red','salt-flat','festival','portrait'];
   const src = k => 'img/' + k + '.jpg';
   
 
@@ -256,14 +274,15 @@
   };
   // labelled pieces only show photos that match their section; unlabelled pieces share PHOTOS
   const POOLS = {
-    a: ['accenture-1', 'accenture-2', 'accenture-3', 'accenture-4'],
+    a: ['accenture-1', 'accenture-3', 'accenture-4'],
     c: ['thesis-tecnico', 'thesis-symposium'],
     d: ['thesis-larva', 'thesis-tracking'],
     e: ['stage-arch', 'rowing-double', 'cappadocia', 'barre', 'rowing-pier', 'ski'],
-    g: ['tulips', 'wheat'],
-    h: ['thesis-tracking', 'accenture-2'],
+    // every photo belongs to exactly one set, so two pieces never show the same image
+    g: ['wheat'],
+    h: ['accenture-2'],
     i: ['trophies', 'medals-table', 'rowing-podium-2', 'rowing-event'],
-    k: ['friends', 'campus-friends', 'tulips'],
+    k: ['friends', 'tulips'],
   };
   Object.entries(POOLS).forEach(([id, pool]) => { PIECES[id].pool = pool; });
   [...new Set(PHOTOS.concat(...Object.values(POOLS)))].forEach(k => { const i = new Image(); i.src = src(k); });
@@ -276,6 +295,15 @@
   let photoIdx = 0;
   let layout = null;
 
+  // next photo in a piece's own set, skipping any photo another piece is showing
+  const nextFrom = (p) => {
+    const inUse = new Set(Object.values(shown));
+    for (let n = 0; n < p.pool.length; n++) {
+      p.n = ((p.n ?? -1) + 1) % p.pool.length;
+      if (!inUse.has(p.pool[p.n])) return p.pool[p.n];
+    }
+    return p.pool[p.n];
+  };
   const nextPhoto = () => {
     const inUse = new Set(Object.values(shown));
     for (let n = 0; n < PHOTOS.length; n++) {
@@ -353,7 +381,7 @@
     if (open.includes(id)) return;
     const p = PIECES[id];
     // a piece with its own pool (Thesis) cycles through it; the rest share the main set
-    shown[id] = p.pool ? p.pool[(p.n = ((p.n ?? -1) + 1) % p.pool.length)] : nextPhoto();
+    shown[id] = p.pool ? nextFrom(p) : nextPhoto();
     paint(id, shown[id], true);
     open.push(id);
     while (open.length > MAX_OPEN) {
