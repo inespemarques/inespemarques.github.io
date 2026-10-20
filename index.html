@@ -618,9 +618,15 @@
               } else throw new Error('not sent');
             })
             .catch(() => {
-              const full = 'To: ' + TO + '\nSubject: ' + (subject || 'Hello from your portfolio') + '\n\n' + msg + '\n\n' + name + ' (' + email + ')';
-              show('err', 'This page could not send the message. Copy it and email <span class="addr">' + TO + '</span> directly.<button type="button" id="c-copymsg">Copy message</button>');
-              document.getElementById('c-copymsg').addEventListener('click', function () { copyText(full, this); });
+              // AJAX can fail (pending FormSubmit activation, blocked request); fall back to a normal form post
+              const f = document.createElement('form');
+              f.method = 'POST'; f.action = 'https://formsubmit.co/' + TO; f.style.display = 'none';
+              Object.entries({ ...payload, _next: location.origin + location.pathname + '?sent=1' }).forEach(([k, v]) => {
+                const i = document.createElement('input'); i.type = 'hidden'; i.name = k; i.value = v; f.appendChild(i);
+              });
+              document.body.appendChild(f);
+              show('ok', 'Sending…');
+              f.submit();
             })
             .then(() => { sendBtn.disabled = false; sendBtn.textContent = 'Send message'; });
         });
@@ -651,6 +657,13 @@
   document.getElementById('close').addEventListener('click', closePanel);
   addEventListener('keydown', e => { if (e.key === 'Escape' && panel.classList.contains('on')) closePanel(); });
   document.querySelectorAll('[data-open]').forEach(b => b.addEventListener('click', () => openPanel(b.dataset.open, PIECES.k)));
+  // back from FormSubmit's normal post: confirm on the Contact panel
+  if (new URLSearchParams(location.search).has('sent')) {
+    history.replaceState(null, '', location.pathname);
+    openPanel('contact', PIECES.g);
+    const st = document.getElementById('c-status');
+    st.className = 'form-status ok'; st.textContent = 'Sent. Thank you, I will reply soon.'; st.hidden = false;
+  }
 })();
 </script>
 
