@@ -1,0 +1,657 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="description" content="Inês Marques, biomedical engineer in Lisbon: research, health data and applied AI."><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Inês Marques Home</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  /* Layout: a full-bleed board of flat-colour tetromino pieces that drop in on load; hovering turns a piece into a photo (max 3 open); labelled pieces open a section panel */
+  :root {
+    color-scheme: dark;
+    --bg: #0d1210;
+    --ink: #eae7dd;
+    --ink-dim: #9aa39a;
+    --dark: #14110d;
+    --yellow: #f0e130;
+    --pink: #ee9a9a;
+    --sand: #dbd6b8;
+    --blue: #3f8bd0;
+    --violet: #b52cf0;
+    --orange: #ff7d12;
+    --brown: #5e3410;
+    --red: #e2261f;
+    --green: #4fe3a0;
+    --signal: #4fe3a0; --heat: #ff8a4a; --line: #263029;
+    --display: 'Bricolage Grotesque', 'IBM Plex Sans', system-ui, sans-serif;
+    --body: 'IBM Plex Sans', -apple-system, system-ui, sans-serif;
+    --mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { background: var(--bg); color: var(--ink); }
+  body { font-family: var(--body); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  :focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+
+  header.top {
+    display: grid; grid-template-columns: 1fr auto; gap: 8px 24px; align-items: baseline;
+    padding: 18px 16px 22px; font: 13px/1.4 var(--mono);
+  }
+  header.top .who { color: var(--ink); grid-column: 1 / -1; }
+  @media (min-width: 760px) { header.top .who { grid-column: auto; } }
+  header.top .what { color: var(--ink-dim); }
+  header.top button { font: inherit; color: var(--ink); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+  @media (min-width: 760px) {
+    header.top { grid-template-columns: 1fr 1fr auto; padding-inline: 12px; }
+  }
+
+  /* board */
+  .board { position: relative; overflow: hidden; display: grid; grid-template-columns: repeat(var(--cols), 1fr); }
+  .cell {
+    position: relative; aspect-ratio: 1; background: var(--c); overflow: hidden; cursor: pointer;
+    /* hairline overlap so pieces read as solid shapes without seams */
+    margin: 0 -0.5px -0.5px 0;
+  }
+  .cell.fall { animation: drop var(--dur, .7s) cubic-bezier(.55,0,.35,1.12) var(--delay, 0s) both; }
+  @keyframes drop { from { transform: translateY(var(--from)); } to { transform: none; } }
+  .cell .ph { position: absolute; clip-path: inset(0 0 100% 0); transition: clip-path .55s cubic-bezier(.7,0,.2,1) var(--rd, 0s); }
+  .cell .ph img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .cell.open .ph { clip-path: inset(0 0 0 0); }
+  .cell.shut .ph { clip-path: inset(100% 0 0 0); }
+  .lbl {
+    position: absolute; z-index: 2; font: 500 clamp(10px, 1vw, 13px) var(--mono); letter-spacing: .06em; text-transform: uppercase;
+    color: var(--dark); padding: 3px 6px; border: 0; background: transparent; cursor: pointer;
+    transition: background .3s, color .3s;
+  }
+  .lbl.tl { top: 10%; left: 8%; } .lbl.tr { top: 10%; right: 8%; } .lbl.bl { bottom: 10%; left: 8%; } .lbl.br { bottom: 10%; right: 8%; }
+  .cell.open .lbl { background: var(--c); }
+  .cell[data-dark] .lbl { color: var(--ink); }
+  .cell.labelled:hover .lbl, .lbl:focus-visible { text-decoration: underline; text-underline-offset: 3px; }
+
+  .hint { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px 24px; padding: 16px 16px calc(24px + env(safe-area-inset-bottom, 0px)); font: 12px var(--mono); color: var(--ink-dim); }
+  .hint a { color: var(--ink-dim); }
+
+  /* section panel */
+  .panel {
+    position: fixed; inset: 0; z-index: 40; background: var(--pc, var(--sand)); color: var(--dark);
+    overflow-y: auto; overscroll-behavior: contain;
+    clip-path: inset(0 0 100% 0); visibility: hidden;
+    transition: clip-path .6s cubic-bezier(.7,0,.2,1), visibility 0s linear .6s;
+  }
+  .panel.on { clip-path: inset(0 0 0 0); visibility: visible; transition: clip-path .6s cubic-bezier(.7,0,.2,1), visibility 0s; }
+  .panel[data-dark] { color: var(--ink); }
+  .panel .inner { max-width: 1100px; margin: 0 auto; padding: calc(20px + env(safe-area-inset-top, 0px)) 16px calc(60px + env(safe-area-inset-bottom, 0px)); }
+  .panel .bar { display: flex; justify-content: space-between; align-items: center; font: 13px var(--mono); margin-bottom: 8vh; }
+  .panel .close { font: 13px var(--mono); color: inherit; background: none; border: 1.5px solid currentColor; padding: 8px 14px; cursor: pointer; }
+  .panel h2 { font: 800 clamp(3rem, 12vw, 9rem)/.85 var(--display); letter-spacing: -.045em; margin: 0 0 6vh; text-transform: uppercase; text-wrap: balance; }
+  .panel .lead { font: 500 clamp(1.15rem, 2.4vw, 1.6rem)/1.35 var(--body); max-width: 40ch; margin: 0 0 6vh; }
+  .panel .rows { display: grid; gap: 0; border-top: 1.5px solid currentColor; }
+  .panel .row { display: grid; grid-template-columns: 10rem 1fr; gap: 8px 28px; padding: 20px 0; border-bottom: 1.5px solid currentColor; }
+  .panel .row > * { min-width: 0; }
+  .panel .row .when { font: 12px/1.5 var(--mono); padding-top: 4px; font-variant-numeric: tabular-nums; }
+  .panel .row h3 { font: 700 clamp(1.1rem, 2vw, 1.4rem)/1.2 var(--display); margin: 0 0 6px; }
+  .panel .row .org { font: 12px var(--mono); margin: 0 0 8px; text-transform: uppercase; letter-spacing: .05em; }
+  .panel .row p { margin: 0; font-size: 15px; line-height: 1.55; max-width: 68ch; }
+  @media (max-width: 640px) { .panel .row { grid-template-columns: 1fr; } }
+  .panel .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .panel .chip { font: 13px var(--mono); border: 1.5px solid currentColor; padding: 6px 10px; }
+  .panel .strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0; margin: 6vh 0 0; }
+  .panel .strip img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
+  .panel .big { font: 700 clamp(1.4rem, 4vw, 2.6rem) var(--display); word-break: break-all; user-select: all; margin: 0 0 14px; }
+  .panel .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
+  .panel .btn { font: 14px var(--mono); color: inherit; background: none; border: 1.5px solid currentColor; padding: 10px 16px; cursor: pointer; text-decoration: none; }
+  .panel .note { font: 12px var(--mono); margin-top: 6vh; }
+  .panel .note a { color: inherit; }
+
+
+  /* ---------- dark panels (Experience, Thesis, Contact) ---------- */
+  .panel.tint h2 { color: var(--ac); }
+  .panel .kicker { font: 13px/1.4 var(--mono); color: var(--signal); margin: 0 0 14px; }
+  .panel .kicker a, .panel .cap a, .panel .prose a { color: inherit; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  .panel .headline { font: 700 clamp(1.8rem, 5.2vw, 2.8rem)/1.12 var(--display); margin: 0 0 20px; max-width: 18ch; text-wrap: balance; }
+  .panel .sub { font-size: 16px; line-height: 1.55; max-width: 46ch; margin: 0; color: var(--ink-dim); }
+  .panel .cap { font: 12.5px/1.5 var(--mono); color: var(--ink-dim); margin: 10px 0 0; }
+
+  /* experience */
+  .xp { display: grid; border-top: 1.5px solid currentColor; }
+  .xp-row { display: grid; grid-template-columns: 10rem minmax(0, 1fr); gap: 10px 28px; padding: 26px 0 32px; border-bottom: 1.5px solid currentColor; }
+  .xp-row .when { font: 12px/1.5 var(--mono); padding-top: 4px; font-variant-numeric: tabular-nums; }
+  .xp-row .when i { display: block; width: 28px; height: 6px; background: var(--a); margin-bottom: 12px; }
+  .xp-row h3 { font: 700 clamp(1.15rem, 2.2vw, 1.5rem)/1.2 var(--display); margin: 0 0 6px; }
+  .xp-row .org { font: 12px/1.4 var(--mono); color: var(--a); margin: 0 0 10px; text-transform: uppercase; letter-spacing: .05em; }
+  .xp-row .org a { color: inherit; }
+  .xp-row p { margin: 0; font-size: 15px; line-height: 1.6; max-width: 66ch; }
+  .xp-row p.org { max-width: none; }
+  .xp-row p strong { font-weight: 600; }
+  .shots { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; align-items: flex-start; }
+  .shots img { display: block; height: auto; width: 100%; border-radius: 6px; }
+  .shots.one { max-width: 640px; }
+  @media (max-width: 640px) { .xp-row { grid-template-columns: 1fr; } }
+
+  /* thesis */
+  .thesis-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(200px, 280px); gap: 40px; align-items: start; }
+  .vid { margin: 0; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); background: #000; }
+  .vid video { width: 100%; height: auto; aspect-ratio: 9 / 16; object-fit: contain; display: block; }
+  .vid .cap { padding: 10px 14px 14px; margin: 0; }
+  @media (max-width: 760px) { .thesis-row { grid-template-columns: 1fr; } .vid { max-width: 300px; } }
+  .stats { display: flex; gap: 22px 28px; flex-wrap: wrap; margin: 28px 0 0; }
+  .stat { min-width: 120px; }
+  .stat .num { font: 700 1.9rem var(--display); color: var(--signal); }
+  .stat .slbl { font-size: 13px; color: var(--ink-dim); margin-top: 2px; max-width: 18ch; }
+  .repo { display: inline-flex; flex-direction: column; gap: 4px; margin-top: 26px; padding: 14px 18px; border: 1px solid var(--signal); border-radius: 8px; color: var(--ink); text-decoration: none; max-width: 100%; }
+  .repo:hover { background: rgba(79, 227, 160, .08); }
+  .repo .path { font: 12.5px var(--mono); color: var(--ink-dim); word-break: break-all; }
+  .repo .go { font: 600 16px var(--display); color: var(--signal); }
+  .panel .prose { font-size: 15.5px; line-height: 1.65; color: var(--ink-dim); max-width: 64ch; margin: 0 0 14px; }
+  .panel .prose a { color: var(--ink); }
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0 0; }
+  .tag { font: 12px var(--mono); color: var(--ink-dim); border: 1px solid var(--line); border-radius: 4px; padding: 4px 9px; }
+  .fig { margin: 40px 0 0; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); }
+  .fig img { width: 100%; height: auto; display: block; }
+  .fig .cap { padding: 10px 14px 14px; margin: 0; }
+
+  /* contact */
+  .elements { display: flex; gap: 10px; flex-wrap: wrap; margin: 30px 0 18px; padding-top: 22px; }
+  .el { position: relative; width: 108px; aspect-ratio: 1; max-width: 30%; border: 1.5px solid var(--c, var(--signal)); border-radius: 6px; padding: 9px 10px; display: flex; flex-direction: column; justify-content: space-between; color: var(--ink); background: color-mix(in srgb, var(--c, var(--signal)) 8%, transparent); animation: tilein .45s ease-out both; }
+  .el .z { font: 12px var(--mono); color: var(--ink-dim); display: flex; justify-content: space-between; gap: 4px; }
+  .el .sym { font: 700 clamp(2rem, 7vw, 2.7rem)/1 var(--display); color: var(--c, var(--signal)); }
+  .el .nm { font-size: 11.5px; color: var(--ink-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .el.glow .sym { text-shadow: 0 0 6px var(--c), 0 0 18px var(--c); animation: flicker 4s infinite; }
+  .el.hat::before { content: "^"; position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font: 700 30px var(--display); color: var(--c); }
+  @keyframes tilein { from { opacity: .2; transform: translateY(8px) rotate(-3deg); } to { opacity: 1; transform: none; } }
+  @keyframes flicker { 0%, 92%, 100% { opacity: 1; } 94% { opacity: .55; } 96% { opacity: 1; } 97% { opacity: .7; } }
+  .el-picker { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
+  .el-picker span { font: 12px var(--mono); color: var(--ink-dim); margin-right: 4px; }
+  .el-picker button { font: 13px var(--mono); color: var(--ink-dim); background: none; border: 1px solid var(--line); border-radius: 4px; padding: 5px 10px; cursor: pointer; }
+  .el-picker button[aria-pressed="true"] { color: var(--bg); background: var(--signal); border-color: var(--signal); }
+  .el-note { font-size: 14px; color: var(--ink-dim); margin: 0 0 8px; max-width: 60ch; line-height: 1.55; min-height: 3.1em; }
+  .contact-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 40px; align-items: start; margin-top: 44px; }
+  @media (max-width: 700px) { .contact-grid { grid-template-columns: 1fr; gap: 32px; } }
+  .cform { display: flex; flex-direction: column; gap: 16px; }
+  .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .field label { font: 12px var(--mono); color: var(--ink-dim); letter-spacing: .04em; text-transform: uppercase; }
+  .field input, .field textarea { font: 15px var(--body); color: var(--ink); background: rgba(255, 255, 255, .04); border: 1px solid var(--line); border-radius: 6px; padding: 11px 12px; width: 100%; }
+  .field textarea { min-height: 150px; resize: vertical; line-height: 1.5; }
+  .field input:focus, .field textarea:focus { outline: none; border-color: var(--signal); }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 520px) { .row2 { grid-template-columns: 1fr; } }
+  .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+  .send { align-self: flex-start; font: 600 15px var(--display); color: var(--bg); background: var(--signal); border: none; border-radius: 6px; padding: 12px 22px; cursor: pointer; }
+  .send:disabled { opacity: .6; cursor: wait; }
+  .form-status { font-size: 14.5px; line-height: 1.55; border-left: 2px solid var(--line); padding: 4px 0 4px 12px; margin: 0; }
+  .form-status.ok { border-color: var(--signal); }
+  .form-status.err { border-color: var(--heat); }
+  .copy, .form-status button { font: 13px var(--mono); background: none; color: var(--signal); border: 1px solid var(--line); border-radius: 4px; padding: 3px 9px; cursor: pointer; margin-left: 6px; }
+  .direct { display: flex; flex-direction: column; gap: 22px; }
+  .direct h3 { font: 600 1rem var(--body); margin: 0 0 6px; }
+  .direct p { margin: 0; font-size: 14.5px; color: var(--ink-dim); line-height: 1.55; }
+  .direct a { color: var(--signal); }
+  .addr { font: 14px var(--mono); color: var(--ink); word-break: break-all; user-select: all; }
+  .panel button:focus-visible, .panel a:focus-visible, .panel input:focus-visible, .panel textarea:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+
+  .twrap { --signal: color-mix(in srgb, var(--blue) 82%, white); }
+  .twrap .repo:hover { background: rgba(63, 139, 208, .1); }
+  .cwrap { --signal: color-mix(in srgb, var(--violet) 70%, white); --heat: var(--pink); }
+  .cwrap .send { color: #1a0a22; }
+
+  /* hobbies */
+  .hob-sec { border-top: 1.5px solid currentColor; padding: 34px 0 46px; display: grid; grid-template-columns: minmax(0, 15rem) minmax(0, 1fr); gap: 22px 40px; }
+  .hob-sec h3 { font: 800 clamp(1.9rem, 4vw, 3rem)/1 var(--display); letter-spacing: -.03em; text-transform: uppercase; margin: 0 0 12px; }
+  .hob-sec .meta { font: 12px/1.4 var(--mono); margin: 0 0 12px; }
+  .hob-sec p { font-size: 15px; line-height: 1.6; max-width: 42ch; margin: 0; }
+  .hob-sec .mosaic { min-width: 0; }
+  .mosaic { columns: 3 170px; column-gap: 8px; }
+  .mosaic img { width: 100%; height: auto; display: block; margin: 0 0 8px; break-inside: avoid; }
+  .mosaic.one { columns: 1; max-width: 640px; }
+  .mosaic.two { columns: 2; max-width: 760px; }
+  @media (max-width: 760px) { .hob-sec { grid-template-columns: 1fr; } .mosaic { columns: 2 130px; } .mosaic.two { columns: 2; } }
+
+  @media (prefers-reduced-motion: reduce) { .el, .el.glow .sym { animation: none; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cell.fall { animation: none; }
+    .cell .ph, .panel, .panel.on { transition: none; }
+  }
+</style>
+
+<header class="top">
+  <span class="who">inês marques, biomedical engineer</span>
+  <span class="what">who decodes how sight becomes behavior</span>
+  <button type="button" data-open="about">about</button>
+</header>
+
+<main>
+  <div class="board" id="board" aria-label="Portfolio board: hover a piece to reveal a photo, choose a label to open a section"></div>
+  <div class="hint"><span>Hover the pieces to uncover photos. Click a label to open it.</span><span>Lisbon, Portugal</span></div>
+</main>
+
+<section class="panel" id="panel" role="dialog" aria-modal="true" aria-labelledby="panel-title" tabindex="-1">
+  <div class="inner">
+    <div class="bar"><span>inês marques</span><button type="button" class="close" id="close">Close</button></div>
+    <div id="panel-body"></div>
+  </div>
+</section>
+
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const PHOTOS = ['stage-kick','istanbul','tulips','portrait','salt-flat','barre','ski','stage-arch','desert','friends','cappadocia','studio','wheat','stage-red','festival','trophies'];
+  const src = k => 'img/' + k + '.jpg';
+  PHOTOS.forEach(k => { const i = new Image(); i.src = src(k); });
+
+  /* 4 x 8 board; each letter is one piece (T, S, Z, L-trominoes, dominoes, singles) */
+  const MAP = [
+    'aaabccdd',
+    'eafbbcdg',
+    'eefhhiig',
+    'jekkhhil',
+  ];
+  const PIECES = {
+    a: { photo: 'studio', c: 'yellow', label: 'Experience', sec: 'experience', corner: 'tl' },
+    b: { photo: 'barre', c: 'pink' },
+    c: { photo: 'istanbul', c: 'sand', label: 'Education', sec: 'education', corner: 'tr' },
+    d: { photo: 'tulips', c: 'blue', label: 'Thesis', sec: 'thesis', corner: 'br', dark: 1 },
+    e: { photo: 'portrait', c: 'green', label: 'Hobbies', sec: 'hobbies', corner: 'bl' },
+    f: { photo: 'desert', c: 'orange' },
+    g: { photo: 'wheat', c: 'violet', label: 'Contact', sec: 'contact', corner: 'br', dark: 1 },
+    h: { photo: 'stage-kick', c: 'red', label: 'Skills', sec: 'skills', corner: 'tl', dark: 1 },
+    i: { photo: 'salt-flat', c: 'yellow', label: 'Awards', sec: 'awards', corner: 'br' },
+    j: { photo: 'ski', c: 'pink' },
+    k: { photo: 'festival', c: 'blue', label: 'About', sec: 'about', corner: 'bl', dark: 1 },
+    l: { photo: 'friends', c: 'brown' },
+  };
+  const OPEN_AT_START = ['e', 'h', 'd'];
+  const MAX_OPEN = 3;
+
+  const board = document.getElementById('board');
+  let open = [];            // piece ids, oldest first
+  let shown = {};           // piece id -> photo key
+  let photoIdx = 0;
+  let layout = null;
+
+  const nextPhoto = () => {
+    const inUse = new Set(Object.values(shown));
+    for (let n = 0; n < PHOTOS.length; n++) {
+      const k = PHOTOS[photoIdx++ % PHOTOS.length];
+      if (!inUse.has(k)) return k;
+    }
+    return PHOTOS[0];
+  };
+
+  const build = (animate) => {
+    const narrow = innerWidth < 700;
+    if (layout === narrow && !animate) return;
+    layout = narrow;
+    board.innerHTML = '';
+    const rows = narrow ? 8 : 4, cols = narrow ? 4 : 8;
+    board.style.setProperty('--cols', cols);
+    // collect cells per piece (transpose on phones so the board runs down the screen)
+    const cells = {};
+    MAP.forEach((line, r) => [...line].forEach((id, c) => {
+      const [rr, cc] = narrow ? [c, r] : [r, c];
+      (cells[id] = cells[id] || []).push([rr, cc]);
+    }));
+    // drop order: pieces whose lowest cell is lowest land first
+    const order = Object.keys(cells).sort((x, y) => Math.max(...cells[y].map(v => v[0])) - Math.max(...cells[x].map(v => v[0])) || Math.min(...cells[x].map(v => v[1])) - Math.min(...cells[y].map(v => v[1])));
+    Object.entries(cells).forEach(([id, list]) => {
+      const p = PIECES[id];
+      const r0 = Math.min(...list.map(v => v[0])), r1 = Math.max(...list.map(v => v[0]));
+      const c0 = Math.min(...list.map(v => v[1])), c1 = Math.max(...list.map(v => v[1]));
+      const bw = c1 - c0 + 1, bh = r1 - r0 + 1;
+      const first = list.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+      const labelCell = p.corner && p.corner[0] === 'b' ? first[first.length - 1] : first[0];
+      const k = order.indexOf(id);
+      p.els = list.map(([r, c]) => {
+        const el = document.createElement('div');
+        el.className = 'cell' + (p.label ? ' labelled' : '');
+        el.dataset.piece = id;
+        if (p.dark) el.dataset.dark = '';
+        el.style.setProperty('--c', `var(--${p.c})`);
+        el.style.gridRow = r + 1; el.style.gridColumn = c + 1;
+        el.style.setProperty('--rd', ((r - r0) * 0.06 + (c - c0) * 0.03).toFixed(2) + 's');
+        const ph = document.createElement('div');
+        ph.className = 'ph';
+        ph.style.left = -(c - c0) * 100 + '%'; ph.style.top = -(r - r0) * 100 + '%';
+        ph.style.width = bw * 100 + '%'; ph.style.height = bh * 100 + '%';
+        ph.innerHTML = '<img alt="" draggable="false">';
+        el.appendChild(ph);
+        if (p.label && r === labelCell[0] && c === labelCell[1]) {
+          const b = document.createElement('button');
+          b.type = 'button'; b.className = 'lbl ' + p.corner; b.textContent = p.label;
+          b.addEventListener('focus', () => reveal(id));
+          el.appendChild(b);
+        }
+        if (animate && !reduce) {
+          el.classList.add('fall');
+          el.style.setProperty('--from', `calc(${-(r1 + 1.5)} * 100% - 20px)`);
+          el.style.setProperty('--delay', (0.25 + k * 0.13).toFixed(2) + 's');
+        }
+        board.appendChild(el);
+        return el;
+      });
+      if (shown[id] && open.includes(id)) paint(id, shown[id], true);
+    });
+    return order;
+  };
+
+  const paint = (id, key, on) => {
+    PIECES[id].els.forEach(el => {
+      el.querySelector('img').src = src(key);
+      el.querySelector('img').alt = on ? '' : '';
+      el.classList.remove('shut');
+      el.classList.toggle('open', on);
+    });
+  };
+  const reveal = (id) => {
+    if (open.includes(id)) return;
+    shown[id] = PIECES[id].photo; // each piece always shows the same photo
+    paint(id, shown[id], true);
+    open.push(id);
+    while (open.length > MAX_OPEN) {
+      const old = open.shift();
+      PIECES[old].els.forEach(el => { el.classList.remove('open'); el.classList.add('shut'); });
+      const gone = old;
+      setTimeout(() => { if (!open.includes(gone)) { delete shown[gone]; PIECES[gone].els.forEach(el => el.classList.remove('shut')); } }, 700);
+    }
+  };
+
+  // hover reveals; a tap on a closed piece reveals, a tap on a labelled piece opens its section
+  let lastPointer = 'mouse';
+  board.addEventListener('pointerover', e => {
+    lastPointer = e.pointerType;
+    const cell = e.target.closest('.cell'); if (!cell || e.pointerType !== 'mouse') return;
+    reveal(cell.dataset.piece);
+  });
+  board.addEventListener('click', e => {
+    const cell = e.target.closest('.cell'); if (!cell) return;
+    const id = cell.dataset.piece, p = PIECES[id];
+    const touch = lastPointer !== 'mouse';
+    if (touch && !open.includes(id) && !e.target.closest('.lbl')) { reveal(id); return; }
+    reveal(id);
+    if (p.sec) openPanel(p.sec, p);
+  });
+  board.addEventListener('pointerdown', e => { lastPointer = e.pointerType; });
+
+  const order = build(true);
+  // three pieces arrive already showing photos, the rest wait for the cursor
+  OPEN_AT_START.forEach((id, n) => {
+    const landed = reduce ? 0 : (0.25 + order.indexOf(id) * 0.13 + 0.75) * 1000;
+    setTimeout(() => reveal(id), landed);
+  });
+  addEventListener('resize', () => build(false));
+
+  /* ---------- sections ---------- */
+  const DIMS = {"rowing-team": [1100, 801], "stage-kick": [720, 719], "accenture-2": [1000, 750], "istanbul": [667, 720], "orger-lab": [799, 200], "wheat": [608, 720], "barre": [720, 538], "stage-arch": [720, 480], "tulips": [543, 646], "friends": [709, 667], "stage-red": [720, 480], "portrait": [480, 720], "salt-flat": [951, 1072], "travel-lagoon": [893, 1100], "travel-valley": [885, 1100], "travel-morocco": [1100, 1098], "accenture-3": [750, 1000], "festival": [720, 480], "travel-smile": [889, 1100], "studio": [720, 540], "travel-machu-group": [902, 1100], "accenture-4": [750, 1000], "desert": [530, 717], "cappadocia": [720, 673], "accenture-1": [1000, 750], "trophies": [720, 540], "ski": [693, 720], "rowing-podium": [1400, 1050], "rowing-medals": [1400, 1050], "rowing-scull": [1400, 1050]};
+  const ALT = {
+    'stage-kick': 'Dancer mid high kick in a black sequined costume and red gloves',
+    'barre': 'Ballet class lined up at the barre in a bright studio',
+    'stage-arch': 'Dance company bending backwards in unison on stage',
+    'studio': 'Dance group posing on a red floor in a TV studio',
+    'stage-red': 'Dance company in red costumes holding a pose on stage',
+    'festival': 'Three young dancers on stage at a dance festival',
+    'portrait': 'Close portrait of a young dancer',
+    'istanbul': 'Inside the Hagia Sophia in Istanbul',
+    'cappadocia': 'A rooftop view over the rock formations of Cappadocia',
+    'desert': 'A lone rock formation in a high desert under clouds',
+    'tulips': 'Cycling past a field of red tulips',
+    'ski': 'Skiing on a snowy mountain',
+    'salt-flat': 'Forced-perspective photo on a salt flat: a person seated on top of a wine bottle',
+    'travel-morocco': 'Courtyard with a marble fountain and tiled walls',
+    'travel-lagoon': 'A mountain lagoon with flamingos and reflected clouds',
+    'travel-machu-group': 'Group of travellers crouching in front of Machu Picchu',
+    'travel-valley': 'A misty green canyon with a river far below',
+    'travel-smile': 'A child in a hat smiling close to the camera',
+    'rowing-podium': 'Rowing podium at an indoor championship, holding the Ginásio Clube Figueirense flag',
+    'rowing-medals': 'Medal ceremony with club flags at an indoor rowing event',
+    'rowing-scull': 'Rowing a single scull on a reservoir',
+    'rowing-team': 'Six teammates arm in arm on a pier by a reservoir, laughing',
+    'accenture-1': 'Team at the Accenture Lisbon office',
+    'accenture-2': 'Team outside the Accenture campus',
+    'accenture-3': 'Colleagues at a team event',
+    'accenture-4': 'Team at IPN Aceleradora',
+    'orger-lab': 'The Orger Lab team outdoors',
+  };
+  const pic = (k, cls) => {
+    const d = DIMS[k] || [4, 3];
+    return `<img src="${src(k)}" width="${d[0]}" height="${d[1]}" alt="${ALT[k] || ''}" loading="lazy" decoding="async"${cls ? ` class="${cls}"` : ''}>`;
+  };
+  const ORGER = '<a href="https://fchampalimaud.org/research/groups/orger" target="_blank" rel="noopener">Orger Lab</a>';
+  const XP = [
+    { a: 'yellow', when: 'Apr 2026 – now', h: 'App/Cloud Support Associate', org: 'Accenture · Lisbon',
+      p: 'Salesforce development on Sales Cloud and Service Cloud, with hands-on work in Apex, triggers and Lightning Web Components.',
+      shots: ['accenture-1', 'accenture-2', 'accenture-3', 'accenture-4'] },
+    { a: 'green', when: 'Mar 2025 – Mar 2026', h: 'Master Thesis Researcher', org: 'Champalimaud Foundation · ' + ORGER,
+      p: 'Built a full 3D image-analysis pipeline, from confocal acquisition to deep-learning segmentation and cell classification, processing <strong>~100,000 neurons</strong> across whole zebrafish brains. Open-source toolkit released on GitHub.',
+      shots: ['orger-lab'], wide: true },
+    { a: 'orange', when: 'Oct 2025 – Jan 2026', h: 'Validation Engineer', org: 'Hikma Pharmaceuticals',
+      p: 'Temperature and humidity mappings and equipment qualification in a GMP environment, with 100% documentation compliance across audited processes.' },
+    { a: 'blue', when: 'Sep 2024 – Feb 2025', h: 'Intern, Digital Health Strategy', org: 'Directorate-General of Health (DGS)',
+      p: 'Redesign of Portugal\'s national HIV surveillance system towards HL7/FHIR interoperability, and a GDPR-aligned data governance framework adopted into the 2030 HIV Elimination Roadmap.' },
+    { a: 'pink', when: 'Mar 2023 – Jun 2023', h: 'R&D Intern, Point-of-Care Diagnostics', org: 'INESC-MN',
+      p: 'Optimised flow rates in a lab-on-chip system for cancer biomarker isolation from ≤1 µL of blood: +40% sensitivity, −50% processing time.' },
+    { a: 'sand', when: 'Mar 2021 – Mar 2023', h: 'Business Operations', org: 'I.P.M. Lda',
+      p: 'Budgets, quotes and public-tender documentation for healthcare institutions and municipalities; built the company website.' },
+  ];
+  const S = {
+    experience: { t: 'Experience', bg: 'var(--bg)', dark: true, html: () => `
+      <p class="lead">From national health policy to deep-learning pipelines: roles across research, regulated industry and consulting.</p>
+      <div class="xp">
+        ${XP.map(x => `<div class="xp-row" style="--a: var(--${x.a})">
+          <span class="when"><i></i>${x.when}</span>
+          <div>
+            <h3>${x.h}</h3>
+            <p class="org">${x.org}</p>
+            <p>${x.p}</p>
+            ${x.shots ? `<div class="shots${x.wide ? ' one' : ''}">${x.shots.map(k => { const r = DIMS[k][0] / DIMS[k][1]; return `<div style="flex: ${r.toFixed(3)} 1 ${Math.round(r * 130)}px">${pic(k)}</div>`; }).join('')}</div>` : ''}
+          </div>
+        </div>`).join('')}
+      </div>` },
+    thesis: { t: 'Thesis', bg: 'var(--bg)', dark: true, html: () => `
+      <div class="twrap"><div class="thesis-row">
+        <div>
+          <p class="kicker">Research · ${ORGER}, Champalimaud Foundation</p>
+          <h3 class="headline">One brain. A hundred thousand neurons. One cell at a time.</h3>
+          <p class="sub">Vision to Action studies how visual input becomes movement: what a brain decides to do with what it sees. My thesis builds the pipeline that makes that circuitry countable.</p>
+          <div class="stats">
+            <div class="stat"><div class="num">~100k</div><div class="slbl">neurons segmented per brain</div></div>
+            <div class="stat"><div class="num">0.925</div><div class="slbl">specificity, GABAergic line validation</div></div>
+            <div class="stat"><div class="num">20k</div><div class="slbl">3D ROIs in live functional imaging</div></div>
+          </div>
+          <a class="repo" href="https://github.com/inespemarques/transgenicline_validation" target="_blank" rel="noopener"><span class="path">inespemarques/transgenicline_validation</span><span class="go">View the toolkit on GitHub →</span></a>
+        </div>
+        <figure class="vid">
+          <video ${reduce ? 'controls' : 'autoplay'} muted loop playsinline preload="auto" aria-label="Animation of a segmented larval zebrafish brain">
+            <source src="zebrafish-anim.mp4" type="video/mp4">
+          </video>
+          <figcaption class="cap">Whole-brain confocal image of a larval zebrafish, segmented neural populations, animated.</figcaption>
+        </figure>
+      </div>
+      <div style="margin-top: 52px">
+        <p class="prose">The pipeline runs end to end: confocal acquisition, deep-learning segmentation (U-Net and CNN variants), then cell classification. It produced the first quantitative single-cell validation of a widely used GABAergic transgenic line, closing an open measurement gap in the field, released as an <a href="https://github.com/inespemarques/transgenicline_validation" target="_blank" rel="noopener">open-source, reusable toolkit</a>.</p>
+        <p class="prose">From there the framework extends into live functional imaging: two-photon calcium recordings linking genetically defined cell types to real-time circuit dynamics during behaviour. An article is in preparation.</p>
+        <div class="tags">
+          <span class="tag">U-Net</span><span class="tag">CNN segmentation</span><span class="tag">two-photon calcium imaging</span><span class="tag">GABAergic validation</span><span class="tag">open-source toolkit</span>
+        </div>
+        <p class="cap">Grade 18/20 · MSc Biomedical Engineering, Instituto Superior Técnico</p>
+      </div>
+      <figure class="fig">
+        ${pic('orger-lab')}
+        <figcaption class="cap">The ${ORGER}: Vision to Action, Champalimaud Foundation.</figcaption>
+      </figure></div>` },
+    education: { t: 'Education', html: `
+      <div class="rows">
+        <div class="row"><span class="when">2023 – 2026</span><div><h3>MSc Biomedical Engineering</h3><p class="org">Instituto Superior Técnico · GPA 17/20 · Thesis 18/20</p><p>Major in Imaging, Biosignals & Biomedical Instrumentation. Minor in AI, Autonomous Systems & Robotics, Machine Learning.</p></div></div>
+        <div class="row"><span class="when">Erasmus</span><div><h3>Aalto University, Finland</h3><p class="org">5/5</p><p>Financial risk, sustainability, decision support systems, health data privacy and clinical engineering.</p></div></div>
+        <div class="row"><span class="when">Erasmus</span><div><h3>Universidad Carlos III de Madrid</h3><p class="org">17/20</p><p>Business intelligence, data analysis and scientific writing.</p></div></div>
+        <div class="row"><span class="when">2020 – 2023</span><div><h3>BSc Biomedical Engineering</h3><p class="org">Instituto Superior Técnico · GPA 15/20</p></div></div>
+      </div>` },
+    skills: { t: 'Skills', html: `
+      <div class="rows">
+        <div class="row"><span class="when">Programming & data</span><div class="chips">${['Python · scikit-learn, TensorFlow, PyTorch','MATLAB','R','SQL','Java','C++','Excel (advanced)','Power BI','Arduino'].map(s => `<span class="chip">${s}</span>`).join('')}</div></div>
+        <div class="row"><span class="when">Domain</span><div class="chips">${['AI & machine learning','Biomedical & health data systems','Clinical informatics','HL7 / FHIR','Data engineering & analytics','GMP & GDPR','Stakeholder analytics'].map(s => `<span class="chip">${s}</span>`).join('')}</div></div>
+        <div class="row"><span class="when">Platforms</span><div class="chips">${['Salesforce · Apex','Lightning Web Components','Confocal & two-photon imaging'].map(s => `<span class="chip">${s}</span>`).join('')}</div></div>
+        <div class="row"><span class="when">Languages</span><div class="chips">${['Portuguese · native','English · C1 (Cambridge CAE)','French · B1'].map(s => `<span class="chip">${s}</span>`).join('')}</div></div>
+      </div>` },
+    awards: { t: 'Awards', html: `
+      <div class="rows">
+        <div class="row"><span class="when">2022</span><div><h3>1st place and €2,500</h3><p>Ageas Innovation Hackathon at Nova SBE, "Beyond Insurance" category.</p></div></div>
+        <div class="row"><span class="when">2026</span><div><h3>Técnico Ignite AI Builders</h3><p>Santander Foundation, one of 30 selected nationally.</p></div></div>
+        <div class="row"><span class="when">Dance</span><div><h3>World Dance Cup medals</h3><p>Performed at the Royal Albert Hall by invitation of the Royal Academy of Dance.</p></div></div>
+        <div class="row"><span class="when">Leadership</span><div><h3>Slush group lead, Helsinki · AEIST business relations</h3><p>Aalto Ventures Programme (renewable-energy startup, Bioko Island) and MedEngine IEEE-IST smart-glasses project for fatigue detection.</p></div></div>
+      </div>` },
+    about: { t: 'About', html: `
+      <p class="lead">Biomedical engineer driven by curiosity and by the conviction that data can improve almost anything. I have worked across research, public health, pharma and consulting, in three countries.</p>
+      <div class="rows">
+        <div class="row"><span class="when">Now</span><div><p>App/Cloud Support Associate at Accenture, Lisbon.</p></div></div>
+        <div class="row"><span class="when">Looking for</span><div><p>Roles in biomedical engineering, health data and applied AI.</p></div></div>
+      </div>` },
+    hobbies: { t: 'Hobbies', html: () => `
+      <p class="lead">Years of dance taught me rehearsal, precision and moving in sync with a company. Rowing taught me to pull in time with a crew. Travelling taught me to adapt.</p>
+      <div class="hob">
+        <section class="hob-sec" aria-labelledby="h-travel">
+          <div>
+            <h3 id="h-travel">Travel</h3>
+            <p>Travelling solo taught me to adapt: new cities, new languages and plans that rarely survive the first day. From Istanbul and Cappadocia to the Bolivian salt flats and Machu Picchu, with a ski trip whenever there is snow.</p>
+          </div>
+          <div class="mosaic">${['travel-morocco', 'istanbul', 'travel-lagoon', 'cappadocia', 'salt-flat', 'travel-machu-group', 'desert', 'travel-valley', 'tulips', 'travel-smile', 'ski'].map(k => pic(k)).join('')}</div>
+        </section>
+        <section class="hob-sec" aria-labelledby="h-ballet">
+          <div>
+            <h3 id="h-ballet">Ballet</h3>
+            <p class="meta">2009 – 2019</p>
+            <p>Award-winning competitive dancer, with multiple placements at the World Dance Cup. Performed at the Royal Albert Hall by invitation of the Royal Academy of Dance (UK).</p>
+          </div>
+          <div class="mosaic">${['stage-kick', 'barre', 'stage-arch', 'studio', 'portrait', 'stage-red', 'festival'].map(k => pic(k)).join('')}</div>
+        </section>
+        <section class="hob-sec" aria-labelledby="h-rowing">
+          <div>
+            <h3 id="h-rowing">Rowing</h3>
+            <p>Federada pelo Ginásio Clube Figueirense durante 2 anos. Competi na secção de remo do clube (Ginásio Litocar) em 2017. Em janeiro desse ano sagrei-me Campeã Nacional de Remo Indoor (Ergómetro) no escalão de Juvenis, em Gondomar. Em fevereiro de 2017 conquistei ainda a medalha de prata em juvenis e o 2.º lugar geral na classificação combinada no Troféu 1.ªs Remadas, na Barrinha de Mira.</p>
+          </div>
+          <div class="mosaic two">${['rowing-podium', 'rowing-team', 'rowing-medals', 'rowing-scull'].map(k => pic(k)).join('')}</div>
+        </section>
+      </div>` },
+    contact: { t: 'Contact', bg: 'var(--bg)', dark: true, html: () => `
+      <div class="cwrap"><div class="elements" id="el-tiles" aria-live="polite"></div>
+      <div class="el-picker" role="group" aria-label="Spell my name with the periodic table">
+        <span>spell it as</span>
+        <button type="button" data-spell="0" aria-pressed="true">I·Ne·S</button>
+        <button type="button" data-spell="1" aria-pressed="false">In·Es</button>
+        <button type="button" data-spell="2" aria-pressed="false">I·N·Es</button>
+      </div>
+      <p class="el-note" id="el-note"></p>
+      <h3 class="headline" style="max-width: 20ch; margin-top: 26px;">Let's react. Write to me directly.</h3>
+      <p class="sub">Roles in biomedical engineering, research, health data or product: I read every message myself.</p>
+      <div class="contact-grid">
+        <form class="cform" id="cform" novalidate>
+          <div class="row2">
+            <div class="field"><label for="c-name">Name</label><input id="c-name" name="name" autocomplete="name" required></div>
+            <div class="field"><label for="c-email">Email</label><input id="c-email" name="email" type="email" autocomplete="email" required></div>
+          </div>
+          <div class="field"><label for="c-subject">Subject</label><input id="c-subject" name="subject" placeholder="Opportunity at …"></div>
+          <div class="field"><label for="c-msg">Message</label><textarea id="c-msg" name="message" required></textarea></div>
+          <div class="hp" aria-hidden="true"><label for="c-honey">Leave empty</label><input id="c-honey" name="_honey" tabindex="-1" autocomplete="off"></div>
+          <button class="send" type="submit" id="c-send">Send message</button>
+          <p class="form-status" id="c-status" hidden></p>
+        </form>
+        <aside class="direct">
+          <div><h3>Email</h3><p><span class="addr" id="c-addr">inespemarques@gmail.com</span><button type="button" class="copy" id="c-copy">Copy</button></p></div>
+          <div><h3>LinkedIn</h3><p><a href="https://www.linkedin.com/in/in%C3%AAsmarques200/" target="_blank" rel="noopener">in/inêsmarques200</a></p></div>
+          <div><h3>Based in</h3><p>Lisbon, Portugal.</p></div>
+        </aside>
+      </div></div>`,
+      init() {
+        const SPELLINGS = [
+          { tiles: [
+              { z: 53, s: 'I', n: 'Iodine', m: '126.90', c: 'var(--signal)' },
+              { z: 10, s: 'Ne', n: 'Neon', m: '20.180', c: 'var(--heat)', glow: true },
+              { z: 16, s: 'S', n: 'Sulfur', m: '32.06', c: 'var(--yellow)' } ],
+            note: 'Iodine is the contrast agent that makes blood vessels visible in a CT scan. Neon glows when you put energy into it. Sulfur holds proteins together.' },
+          { tiles: [
+              { z: 49, s: 'In', n: 'Indium', m: '114.82', c: 'var(--signal)' },
+              { z: 99, s: 'Es', n: 'Einsteinium', m: '(252)', c: 'var(--heat)', hat: true } ],
+            note: 'Indium is in every touchscreen you have used today. Einsteinium was named after Einstein. Two elements, one circumflex.' },
+          { tiles: [
+              { z: 53, s: 'I', n: 'Iodine', m: '126.90', c: 'var(--signal)' },
+              { z: 7, s: 'N', n: 'Nitrogen', m: '14.007', c: 'var(--heat)' },
+              { z: 99, s: 'Es', n: 'Einsteinium', m: '(252)', c: 'var(--yellow)', hat: true } ],
+            note: 'Iodine for imaging, nitrogen for the air we breathe, einsteinium for the ambition. 53 + 7 + 99 = 159.' },
+        ];
+        const spell = i => {
+          const sp = SPELLINGS[i], box = document.getElementById('el-tiles');
+          box.innerHTML = '';
+          sp.tiles.forEach((t, k) => {
+            const d = document.createElement('div');
+            d.className = 'el' + (t.glow ? ' glow' : '') + (t.hat ? ' hat' : '');
+            d.style.setProperty('--c', t.c);
+            d.style.animationDelay = (k * 90) + 'ms';
+            d.setAttribute('aria-label', t.n + ', element ' + t.z);
+            d.innerHTML = '<div class="z"><span>' + t.z + '</span><span>' + t.m + '</span></div><div class="sym">' + t.s + '</div><div class="nm">' + t.n + '</div>';
+            box.appendChild(d);
+          });
+          document.getElementById('el-note').textContent = sp.note;
+          document.querySelectorAll('[data-spell]').forEach(b => b.setAttribute('aria-pressed', b.dataset.spell === String(i) ? 'true' : 'false'));
+        };
+        document.querySelectorAll('[data-spell]').forEach(b => b.addEventListener('click', () => spell(+b.dataset.spell)));
+        spell(0);
+
+        const TO = 'inespemarques@gmail.com';
+        const form = document.getElementById('cform'), statusEl = document.getElementById('c-status'), sendBtn = document.getElementById('c-send');
+        const selectAddr = () => { const r = document.createRange(); r.selectNodeContents(document.getElementById('c-addr')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); };
+        const copyText = (text, btn) => {
+          const done = () => { const o = btn.textContent; btn.textContent = 'Copied'; setTimeout(() => { btn.textContent = o; }, 1600); };
+          try { navigator.clipboard.writeText(text).then(done, selectAddr); } catch (e) { selectAddr(); }
+        };
+        document.getElementById('c-copy').addEventListener('click', function () { copyText(TO, this); });
+        const show = (kind, html) => { statusEl.className = 'form-status ' + kind; statusEl.innerHTML = html; statusEl.hidden = false; };
+        form.addEventListener('submit', e => {
+          e.preventDefault();
+          if (document.getElementById('c-honey').value) return;
+          const name = document.getElementById('c-name').value.trim(),
+                email = document.getElementById('c-email').value.trim(),
+                subject = document.getElementById('c-subject').value.trim(),
+                msg = document.getElementById('c-msg').value.trim();
+          if (!name || !msg || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { show('err', 'Please add your name, a valid email and a message.'); return; }
+          sendBtn.disabled = true; sendBtn.textContent = 'Sending…';
+          const payload = { name, email, message: msg, _subject: 'Portfolio: ' + (subject || 'message from ' + name), _replyto: email, _template: 'table', _captcha: 'false' };
+          fetch('https://formsubmit.co/ajax/' + TO, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(payload) })
+            .then(r => r.json())
+            .then(res => {
+              if (res && (res.success === true || res.success === 'true')) {
+                form.reset();
+                show('ok', 'Sent. Thank you, ' + name.split(' ')[0].replace(/[<>&]/g, '') + '. I will reply to ' + email.replace(/[<>&]/g, '') + '.');
+              } else throw new Error('not sent');
+            })
+            .catch(() => {
+              const full = 'To: ' + TO + '\nSubject: ' + (subject || 'Hello from your portfolio') + '\n\n' + msg + '\n\n' + name + ' (' + email + ')';
+              show('err', 'This page could not send the message. Copy it and email <span class="addr">' + TO + '</span> directly.<button type="button" id="c-copymsg">Copy message</button>');
+              document.getElementById('c-copymsg').addEventListener('click', function () { copyText(full, this); });
+            })
+            .then(() => { sendBtn.disabled = false; sendBtn.textContent = 'Send message'; });
+        });
+      } },
+  };
+
+  const panel = document.getElementById('panel'), body = document.getElementById('panel-body');
+  let returnFocus = null;
+  function openPanel(sec, p) {
+    const s = S[sec]; if (!s) return;
+    returnFocus = document.activeElement;
+    panel.style.setProperty('--pc', s.bg || `var(--${p ? p.c : 'sand'})`);
+    panel.style.setProperty('--ac', `var(--${p ? p.c : 'sand'})`);
+    panel.classList.toggle('tint', !!s.bg);
+    if (s.dark || (p && p.dark)) panel.dataset.dark = ''; else delete panel.dataset.dark;
+    body.innerHTML = `<h2 id="panel-title">${s.t}</h2>${typeof s.html === 'function' ? s.html() : s.html}`;
+    panel.scrollTop = 0;
+    panel.classList.add('on');
+    panel.focus({ preventScroll: true });
+    if (s.init) s.init();
+  }
+  const closePanel = () => {
+    panel.classList.remove('on');
+    if (returnFocus) returnFocus.focus({ preventScroll: true });
+    // empty the panel once it has slid away so its video stops playing
+    setTimeout(() => { if (!panel.classList.contains('on')) body.innerHTML = ''; }, 800);
+  };
+  document.getElementById('close').addEventListener('click', closePanel);
+  addEventListener('keydown', e => { if (e.key === 'Escape' && panel.classList.contains('on')) closePanel(); });
+  document.querySelectorAll('[data-open]').forEach(b => b.addEventListener('click', () => openPanel(b.dataset.open, PIECES.k)));
+})();
+</script>
+
+</body></html>
