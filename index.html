@@ -242,8 +242,8 @@
   (() => {
     let last = -1;
     try { last = +(localStorage.getItem('tagline') ?? -1); } catch (e) {}
-    let i = Math.floor(Math.random() * (TAGLINES.length - 1));
-    if (i >= last && last >= 0) i++;
+    // step through the list in order; a random start for first-time visitors
+    const i = last >= 0 ? (last + 1) % TAGLINES.length : Math.floor(Math.random() * TAGLINES.length);
     document.getElementById('tagline').textContent = TAGLINES[i];
     try { localStorage.setItem('tagline', i); } catch (e) {}
   })();
