@@ -524,12 +524,16 @@
     adv: { label: 'Advanced', bars: 4, flag: 1, c: 'green' },
     mid: { label: 'Working', bars: 3, c: 'yellow' },
     base: { label: 'Basic', bars: 2, c: 'blue' },
+    native: { label: 'Native', bars: 4, flag: 1, c: 'red' },
+    c1: { label: 'C1 · fluent', bars: 4, flag: 1, c: 'green' },
+    b1: { label: 'B1', bars: 2, c: 'yellow' },
   };
   const PANELS = [
     ['Salesforce', 'CRM & marketing data roles', [['Marketing Cloud', 'daily'], ['Marketing Cloud Personalization', 'daily', 'MCP'], ['Data Cloud', 'daily']]],
     ['Data & machine learning', 'data science, ML, analytics', [['Python', 'adv', 'scikit-learn · TensorFlow · PyTorch'], ['Excel', 'adv'], ['MATLAB', 'mid'], ['R', 'mid'], ['SQL', 'base'], ['Power BI', 'base']]],
     ['Lab & imaging', 'research & biotech', [['Confocal & two-photon imaging', 'adv'], ['Arduino', 'mid', 'sensors · biomedical instrumentation']]],
     ['Software', 'engineering teams', [['Java', 'base'], ['C++', 'base']]],
+    ['Languages', 'international teams', [['Portuguese', 'native'], ['English', 'c1', 'Cambridge CAE'], ['French', 'b1']]],
   ];
   const XP = [
     { a: 'yellow', when: 'Apr 2026 – now', h: 'App/Cloud Support Associate', org: 'Accenture · Lisbon',
@@ -647,11 +651,10 @@
             <span class="lab-flag">${L.flag ? '<b>HIGH</b>' : ''}</span>
           </div>`; }).join('')}
         </section>`).join('')}
-        <p class="lab-foot">HIGH = above the usual range for a recent graduate. Levels as stated in my CV.</p>
+        <p class="lab-foot">HIGH = above the usual range for a recent graduate. Levels as stated in my CV; languages on the CEFR scale.</p>
       </article>
       <div class="rows" style="margin-top: 7vh">
         <div class="row"><span class="when">Domain</span><div class="chips">${['AI & machine learning','Biomedical & health data systems','Clinical informatics','HL7 / FHIR','Data engineering & analytics','GMP & GDPR','Stakeholder analytics'].map(s => `<span class="chip">${s}</span>`).join('')}</div></div>
-        <div class="row"><span class="when">Languages</span><div class="chips">${['Portuguese · native','English · C1 (Cambridge CAE)','French · B1'].map(s => `<span class="chip">${s}</span>`).join('')}</div></div>
       </div>` },
     awards: { t: 'Awards', html: `
       <div class="rows">
