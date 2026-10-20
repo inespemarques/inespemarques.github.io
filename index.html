@@ -158,6 +158,24 @@
   }
   @media (prefers-reduced-motion: reduce) { .hx-row.now .hx-node::after { animation: none; } }
 
+  /* education as a neuron: the drawing runs down a left column, cards stay still beside it */
+  .nr { position: relative; list-style: none; margin: 0; padding: 70px 0 0; }
+  .nr-cv { position: absolute; top: 0; left: 0; width: 164px; pointer-events: none; }
+  .nr-row, .nr-label { position: relative; padding-left: 170px; }
+  .nr-at { position: absolute; left: 0; top: 46px; width: 1px; height: 1px; }
+  .nr-card { padding: 26px 0; border-bottom: 1.5px solid currentColor; }
+  .nr-card .when { display: inline-block; font: 12px/1.4 var(--mono); padding: 3px 8px; border: 1.5px solid currentColor; margin-bottom: 10px; font-variant-numeric: tabular-nums; }
+  .nr-card .when b { font-weight: 600; }
+  .nr-card h3 { font: 700 clamp(1.1rem, 2vw, 1.4rem)/1.2 var(--display); margin: 0 0 6px; }
+  .nr-card .org { font: 12px var(--mono); margin: 0 0 8px; text-transform: uppercase; letter-spacing: .05em; }
+  .nr-card p { margin: 0; font-size: 15px; line-height: 1.55; max-width: 64ch; }
+  .nr-label .sub-h { margin: 7vh 0 1vh; }
+  @media (max-width: 640px) {
+    .nr-cv { width: 70px; }
+    .nr-row, .nr-label { padding-left: 74px; }
+    .nr-label .sub-h { font-size: 1.5rem; }
+  }
+
   /* skills lab report: a paper report on the dark panel, high contrast */
   .lab { background: var(--sand); color: var(--dark); border-radius: 4px; padding: 22px 24px 18px; max-width: 920px; }
   .lab-top { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 20px; padding-bottom: 16px; border-bottom: 2px solid var(--dark); }
@@ -533,6 +551,21 @@
     ['Software', 'engineering teams', [['Java', 'base'], ['C++', 'base']]],
     ['Languages', 'international teams', [['Portuguese', 'native'], ['English', 'c1', 'Cambridge CAE'], ['French', 'b1']]],
   ];
+  /* education as a growing neuron: k = soma (cell body), axon, branch (Erasmus) or syn (activity) */
+  const EDU = [
+    { k: 'soma', part: 'Cell body', when: '2020 – 2023', h: 'BSc Biomedical Engineering', org: 'Instituto Superior Técnico · GPA 15/20' },
+    { k: 'axon', part: 'Axon', when: '2023 – 2026', h: 'MSc Biomedical Engineering', org: 'Instituto Superior Técnico · GPA 17/20 · Thesis 18/20', p: 'Major in Imaging, Biosignals & Biomedical Instrumentation. Minor in AI, Autonomous Systems & Robotics, Machine Learning.' },
+    { k: 'branch', part: 'Erasmus', when: 'Finland', h: 'Aalto University', org: '5/5', p: 'Financial risk, sustainability, decision support systems, health data privacy and clinical engineering.' },
+    { k: 'branch', part: 'Erasmus', when: 'Spain', h: 'Universidad Carlos III de Madrid', org: '17/20', p: 'Business intelligence, data analysis and scientific writing.' },
+    { label: 'Beyond the classroom' },
+    { k: 'syn', when: '2021 – 2024', h: 'Business Relations', org: "AEIST · Técnico students' association", p: 'Secured corporate sponsorships for all major Técnico Lisboa events.' },
+    { k: 'syn', when: '2025', h: 'MedEngine', org: 'IEEE-IST', p: 'Designed a smart-glasses platform for fatigue detection.' },
+    { k: 'syn', when: '2024', h: 'Cultural Coordinator', org: 'COENEEB' },
+    { k: 'syn', when: '2024', h: 'Slush Group Lead · Aalto Ventures Programme', org: 'Helsinki', p: "Led a group at Slush, Europe's leading startup event, and built a renewable-energy startup for Bioko Island, Equatorial Guinea." },
+    { k: 'syn', when: '2022', h: 'Volunteer', org: 'Web Summit · Lisbon' },
+    { k: 'syn', when: '2021', h: 'External Relations', org: 'ANEEB · National Association of Biomedical Engineering Students' },
+    { k: 'syn', when: '2019', h: 'Treasurer', org: 'Student association · Joaquim de Carvalho Secondary School', p: 'Managed the full budget, booked artists and produced student events.' },
+  ];
   const XP = [
     { a: 'yellow', when: 'Apr 2026 – now', h: 'App/Cloud Support Associate', org: 'Accenture · Lisbon',
       p: 'Salesforce work on Marketing Cloud, Marketing Cloud Personalization (MCP) and Data Cloud.',
@@ -659,23 +692,84 @@
         ${pic('orger-lab')}
         <figcaption class="cap">The ${ORGER}: Vision to Action, Champalimaud Foundation.</figcaption>
       </figure></div>` },
-    education: { t: 'Education', html: `
-      <div class="rows">
-        <div class="row"><span class="when">2023 – 2026</span><div><h3>MSc Biomedical Engineering</h3><p class="org">Instituto Superior Técnico · GPA 17/20 · Thesis 18/20</p><p>Major in Imaging, Biosignals & Biomedical Instrumentation. Minor in AI, Autonomous Systems & Robotics, Machine Learning.</p></div></div>
-        <div class="row"><span class="when">Erasmus</span><div><h3>Aalto University, Finland</h3><p class="org">5/5</p><p>Financial risk, sustainability, decision support systems, health data privacy and clinical engineering.</p></div></div>
-        <div class="row"><span class="when">Erasmus</span><div><h3>Universidad Carlos III de Madrid</h3><p class="org">17/20</p><p>Business intelligence, data analysis and scientific writing.</p></div></div>
-        <div class="row"><span class="when">2020 – 2023</span><div><h3>BSc Biomedical Engineering</h3><p class="org">Instituto Superior Técnico · GPA 15/20</p></div></div>
-      </div>
-      <h3 class="sub-h">Beyond the classroom</h3>
-      <div class="rows">
-        <div class="row"><span class="when">2021 – 2024</span><div><h3>Business Relations</h3><p class="org">AEIST · Técnico students' association</p><p>Secured corporate sponsorships for all major Técnico Lisboa events.</p></div></div>
-        <div class="row"><span class="when">2025</span><div><h3>MedEngine</h3><p class="org">IEEE-IST</p><p>Designed a smart-glasses platform for fatigue detection.</p></div></div>
-        <div class="row"><span class="when">2024</span><div><h3>Cultural Coordinator</h3><p class="org">COENEEB</p></div></div>
-        <div class="row"><span class="when">2024</span><div><h3>Slush Group Lead · Aalto Ventures Programme</h3><p class="org">Helsinki</p><p>Led a group at Slush, Europe's leading startup event, and built a renewable-energy startup for Bioko Island, Equatorial Guinea.</p></div></div>
-        <div class="row"><span class="when">2022</span><div><h3>Volunteer</h3><p class="org">Web Summit · Lisbon</p></div></div>
-        <div class="row"><span class="when">2021</span><div><h3>External Relations</h3><p class="org">ANEEB · National Association of Biomedical Engineering Students</p></div></div>
-        <div class="row"><span class="when">2019</span><div><h3>Treasurer</h3><p class="org">Student association · Joaquim de Carvalho Secondary School</p><p>Managed the full budget, booked artists and produced student events.</p></div></div>
-      </div>` },
+    education: { t: 'Education', html: () => `
+      <p class="lead">A neuron that grew: Técnico is the cell body, the master's is the axon, Erasmus branches out to two countries, and everything else lands as synapses.</p>
+      <ol class="nr" id="nr" aria-label="Education, from the first degree to today">
+        <canvas class="nr-cv" aria-hidden="true"></canvas>
+        ${EDU.map(e => e.label ? `<li class="nr-label"><h3 class="sub-h">${e.label}</h3></li>` : `<li class="nr-row" data-k="${e.k}">
+          <span class="nr-at" aria-hidden="true"></span>
+          <div class="nr-card">
+            <span class="when">${e.part ? `<b>${e.part}</b> · ` : ''}${e.when}</span>
+            <h3>${e.h}</h3>
+            <p class="org">${e.org}</p>
+            ${e.p ? `<p>${e.p}</p>` : ''}
+          </div>
+        </li>`).join('')}
+      </ol>`,
+      init() {
+        // the neuron grows down the page as you scroll; a spike travels from the cell body along the axon to every synapse
+        const ol = document.getElementById('nr'), cv = ol.querySelector('.nr-cv'), ctx = cv.getContext('2d'), panelEl = document.getElementById('panel');
+        const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+        const INK = css('--dark'), MY = css('--blue'), SOMA = css('--yellow'), SPK = css('--red'), SYN = css('--violet');
+        const dpr = Math.min(devicePixelRatio || 1, 2), reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        let W = 0, H = 0, pts = [], t0 = 0;
+        const layout = () => {
+          const box = ol.getBoundingClientRect();
+          W = cv.getBoundingClientRect().width; H = box.height;
+          cv.width = W * dpr; cv.height = H * dpr; cv.style.height = H + 'px';
+          pts = [...ol.querySelectorAll('.nr-row')].map(li => { const r = li.querySelector('.nr-at').getBoundingClientRect(); return { y: r.top - box.top, k: li.dataset.k }; });
+        };
+        const draw = now => {
+          const box = ol.getBoundingClientRect(), ax = W * 0.3, end = W - 6;
+          const grown = reduce ? H : Math.min(H, innerHeight - box.top - 60);
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+          if (!pts.length || grown < pts[0].y - 40) return;
+          ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, Math.max(0, grown)); ctx.clip();
+          const soma = pts[0].y, bottom = pts[pts.length - 1].y;
+          ctx.lineCap = 'round'; ctx.strokeStyle = INK;
+          // dendrites above the cell body
+          ctx.lineWidth = 2.5;
+          [[-0.8, 46], [-0.35, 58], [0.1, 50], [0.55, 40]].forEach(([a, l]) => {
+            const x1 = ax + Math.sin(a) * l, y1 = soma - Math.cos(a) * l;
+            ctx.beginPath(); ctx.moveTo(ax, soma); ctx.quadraticCurveTo(ax + Math.sin(a) * l * .3, soma - l * .6, x1, y1); ctx.stroke();
+            ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x1 - 9, y1 - 10); ctx.moveTo(x1, y1); ctx.lineTo(x1 + 8, y1 - 11); ctx.stroke(); ctx.lineWidth = 2.5;
+          });
+          // axon with myelin sheaths
+          ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(ax, soma); ctx.lineTo(ax, bottom); ctx.stroke();
+          ctx.fillStyle = MY;
+          for (let y = soma + 40; y < bottom - 20; y += 46) { if (pts.some(p => p.y - 34 > y - 10 && p.y - 34 < y + 42) || pts.some(p => p.k === 'axon' && Math.abs(p.y - y - 16) < 26)) continue; ctx.beginPath(); ctx.roundRect(ax - 6, y, 12, 32, 6); ctx.fill(); }
+          // branches: Erasmus as long collaterals with their own terminals, activities as synapses
+          pts.slice(1).forEach(p => {
+            if (p.k === 'axon') return;
+            const syn = p.k === 'syn';
+            ctx.lineWidth = syn ? 2 : 3; ctx.strokeStyle = INK;
+            ctx.beginPath(); ctx.moveTo(ax, p.y - 34); ctx.bezierCurveTo(ax, p.y - 6, end - 30, p.y, end - 10, p.y); ctx.stroke();
+            if (!syn) { ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(end - 18, p.y); ctx.lineTo(end - 4, p.y - 9); ctx.moveTo(end - 18, p.y); ctx.lineTo(end - 4, p.y + 9); ctx.stroke(); }
+          });
+          // spike: travels the axon every 3.2s; each branch lights up as it passes
+          const T = reduce ? -1 : ((now - t0) % 3200) / 3200, sy = soma + (bottom - soma) * T;
+          pts.slice(1).forEach(p => {
+            const lit = T >= 0 && sy > p.y - 34 && sy < p.y + 60;
+            if (p.k === 'axon') { ctx.fillStyle = lit ? SPK : INK; ctx.beginPath(); ctx.arc(ax, p.y, 7, 0, 7); ctx.fill(); return; }
+            ctx.fillStyle = lit ? SPK : (p.k === 'syn' ? SYN : SOMA); ctx.strokeStyle = INK; ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.arc(end - 6, p.y, p.k === 'syn' ? 6 : 8, 0, 7); ctx.fill(); ctx.stroke();
+          });
+          ctx.fillStyle = SOMA; ctx.strokeStyle = INK; ctx.lineWidth = 3;
+          ctx.beginPath(); ctx.ellipse(ax, soma, 17, 15, 0, 0, 7); ctx.fill(); ctx.stroke();
+          ctx.fillStyle = INK; ctx.beginPath(); ctx.arc(ax + 3, soma - 2, 5, 0, 7); ctx.fill();
+          if (T >= 0 && sy < grown) {
+            ctx.shadowColor = SPK; ctx.shadowBlur = 14; ctx.fillStyle = SPK;
+            ctx.beginPath(); ctx.arc(ax, sy, 6, 0, 7); ctx.fill(); ctx.shadowBlur = 0;
+          }
+          ctx.restore();
+        };
+        const onResize = () => { layout(); draw(performance.now()); };
+        const tick = now => { if (!ol.isConnected) { removeEventListener('resize', onResize); return; } draw(now); requestAnimationFrame(tick); };
+        layout();
+        if (reduce) draw(0); else requestAnimationFrame(now => { t0 = now; tick(now); });
+        if (reduce) panelEl.addEventListener('scroll', () => draw(0), { passive: true });
+        addEventListener('resize', onResize);
+      } },
     skills: { t: 'Skills', bg: 'var(--bg)', dark: true, html: () => `
       <p class="lead">Lab results, read in five seconds.</p>
       <article class="lab" aria-label="Skills report">
