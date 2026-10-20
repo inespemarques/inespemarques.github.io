@@ -230,7 +230,7 @@
 <script>
 (() => {
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const PHOTOS = ['stage-kick','istanbul','tulips','portrait','salt-flat','barre','ski','stage-arch','desert','friends','cappadocia','studio','wheat','stage-red','festival','trophies'];
+  const PHOTOS = ['stage-kick','medals-table','tulips','istanbul','rowing-pier','portrait','salt-flat','campus-friends','barre','ski','rowing-double','stage-arch','desert','rowing-event','friends','cappadocia','rowing-podium-2','studio','wheat','stage-red','festival','trophies'];
   const src = k => 'img/' + k + '.jpg';
   PHOTOS.forEach(k => { const i = new Image(); i.src = src(k); });
 
@@ -339,7 +339,7 @@
   };
   const reveal = (id) => {
     if (open.includes(id)) return;
-    shown[id] = PIECES[id].photo; // each piece always shows the same photo
+    shown[id] = nextPhoto(); // pieces cycle through the whole photo set
     paint(id, shown[id], true);
     open.push(id);
     while (open.length > MAX_OPEN) {
