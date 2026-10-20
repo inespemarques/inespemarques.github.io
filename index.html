@@ -160,32 +160,33 @@
   }
   @media (prefers-reduced-motion: reduce) { .hx-turn, .hx-row.now .hx-node::after { animation: none; } }
 
-  /* skills monitor */
-  .mon { border: 1.5px solid var(--line); border-radius: 10px; padding: 6px 18px 14px; background: #080b0a; }
-  .mon-head, .mon-ch { display: grid; grid-template-columns: minmax(0, 15rem) minmax(0, 1fr) 7.5rem; gap: 18px; align-items: center; }
-  .mon-head { font: 11px var(--mono); color: var(--ink-dim); text-transform: uppercase; letter-spacing: .08em; padding: 10px 0 4px; }
-  .mon-head span:last-child, .mon-read { text-align: right; }
-  .mon-group { font: 12px var(--mono); color: var(--ink-dim); margin: 18px 0 2px; padding-top: 12px; border-top: 1px dashed var(--line); text-transform: uppercase; letter-spacing: .06em; }
-  .mon-ch { padding: 6px 0; }
-  .mon-name { font: 600 15px/1.3 var(--body); color: var(--ink); }
-  .mon-name small { display: block; font: 11.5px var(--mono); color: var(--ink-dim); font-weight: 400; margin-top: 2px; }
-  .mon-trace { width: 100%; height: 44px; display: block; }
-  .mon-trace path { fill: none; stroke: var(--a); stroke-width: 2; vector-effect: non-scaling-stroke; stroke-linejoin: round; filter: drop-shadow(0 0 3px var(--a));
-    stroke-dasharray: 94 6; animation: mon-sweep 3.2s linear infinite; }
-  .mon-ch:nth-child(3n) .mon-trace path { animation-delay: -1s; } .mon-ch:nth-child(3n+1) .mon-trace path { animation-delay: -2s; }
-  @keyframes mon-sweep { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -100; } }
-  .mon-read b { font: 700 1.6rem/1 var(--display); color: var(--a); font-variant-numeric: tabular-nums; }
-  .mon-read i { font: 11px var(--mono); color: var(--ink-dim); font-style: normal; margin-left: 4px; }
-  .mon-read em { display: block; font: 11px var(--mono); color: var(--a); font-style: normal; text-transform: uppercase; letter-spacing: .06em; margin-top: 3px; }
-  .mon-legend { display: flex; flex-wrap: wrap; gap: 8px 22px; font: 12px var(--mono); color: var(--ink-dim); margin: 14px 0 0; }
-  .mon-legend i { display: inline-block; width: 18px; height: 3px; background: var(--a); vertical-align: middle; margin-right: 8px; }
+  /* skills lab report: a paper report on the dark panel, high contrast */
+  .lab { background: var(--sand); color: var(--dark); border-radius: 4px; padding: 22px 24px 18px; max-width: 920px; }
+  .lab-top { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 20px; padding-bottom: 16px; border-bottom: 2px solid var(--dark); }
+  .lab-top span { display: block; font: 11px var(--mono); text-transform: uppercase; letter-spacing: .08em; opacity: .7; }
+  .lab-top b { font: 600 15px/1.3 var(--body); }
+  .lab-cols, .lab-row { display: grid; grid-template-columns: minmax(0, 1fr) 7.5rem 7rem 4rem; gap: 16px; align-items: center; }
+  .lab-cols { font: 11px var(--mono); text-transform: uppercase; letter-spacing: .08em; opacity: .7; padding: 12px 0 0; }
+  .lab-group h3 { font: 700 1.05rem var(--display); margin: 18px 0 4px; padding-top: 12px; border-top: 1px solid rgba(20, 17, 13, .25); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .lab-group h3 small { font: 12px var(--mono); font-weight: 400; opacity: .75; }
+  .lab-row { padding: 7px 0; border-bottom: 1px dotted rgba(20, 17, 13, .3); }
+  .lab-name { font: 600 16px/1.3 var(--body); }
+  .lab-name small { display: block; font: 12px var(--mono); font-weight: 400; opacity: .7; margin-top: 2px; }
+  .lab-res { font: 600 14px var(--mono); }
+  .lab-bar { display: flex; gap: 4px; }
+  .lab-bar i { flex: 1; height: 12px; border: 1.5px solid var(--dark); }
+  .lab-bar i.on { background: var(--a); }
+  .lab-flag b { font: 700 12px var(--mono); background: var(--dark); color: var(--sand); padding: 3px 6px; letter-spacing: .06em; }
+  .lab-foot { font: 12px var(--mono); margin: 14px 0 0; opacity: .75; }
   @media (max-width: 640px) {
-    .mon { padding: 4px 12px 12px; }
-    .mon-head { display: none; }
-    .mon-ch { grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; padding: 10px 0; }
-    .mon-trace { grid-column: 1 / -1; grid-row: 2; height: 36px; }
+    .lab { padding: 16px 14px 14px; }
+    .lab-top { grid-template-columns: 1fr 1fr; }
+    .lab-top div:nth-child(3) { grid-column: 1 / -1; }
+    .lab-cols { display: none; }
+    .lab-row { grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; }
+    .lab-bar { grid-column: 1; grid-row: 2; max-width: 160px; }
+    .lab-flag { grid-column: 2; grid-row: 2; text-align: right; }
   }
-  @media (prefers-reduced-motion: reduce) { .mon-trace path { animation: none; stroke-dasharray: none; } }
 
   /* thesis */
   .thesis-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(200px, 280px); gap: 40px; align-items: start; }
@@ -517,28 +518,19 @@
     return `<img src="${src(k)}" width="${d[0]}" height="${d[1]}" alt="${ALT[k] || ''}" loading="lazy" decoding="async"${cls ? ` class="${cls}"` : ''}>`;
   };
   const ORGER = '<a href="https://fchampalimaud.org/research/groups/orger" target="_blank" rel="noopener">Orger Lab</a>';
-  /* skills as vital signs: levels from the CV (advanced / intermediate / basic); daily = in use every day at work */
+  /* skills as a lab report: levels from the CV (advanced / intermediate / basic); daily = used every day at work */
   const LEVELS = {
-    daily: { label: 'daily use', bpm: 150, beats: 7, amp: 30, c: 'red' },
-    adv: { label: 'advanced', bpm: 120, beats: 6, amp: 27, c: 'green' },
-    mid: { label: 'intermediate', bpm: 90, beats: 4, amp: 19, c: 'yellow' },
-    base: { label: 'basic', bpm: 60, beats: 3, amp: 11, c: 'blue' },
+    daily: { label: 'Daily use', bars: 4, flag: 1, c: 'red' },
+    adv: { label: 'Advanced', bars: 4, flag: 1, c: 'green' },
+    mid: { label: 'Working', bars: 3, c: 'yellow' },
+    base: { label: 'Basic', bars: 2, c: 'blue' },
   };
-  const VITALS = [
-    ['Salesforce · Accenture', [['Marketing Cloud', 'daily'], ['Marketing Cloud Personalization', 'daily', 'MCP'], ['Data Cloud', 'daily']]],
-    ['Code & data', [['Python', 'adv', 'scikit-learn · TensorFlow · PyTorch'], ['Excel', 'adv'], ['MATLAB', 'mid'], ['R', 'mid'], ['Arduino', 'mid', 'sensors · biomedical instrumentation'], ['SQL', 'base'], ['Power BI', 'base'], ['Java', 'base'], ['C++', 'base']]],
-    ['Lab', [['Confocal & two-photon imaging', 'adv']]],
+  const PANELS = [
+    ['Salesforce', 'CRM & marketing data roles', [['Marketing Cloud', 'daily'], ['Marketing Cloud Personalization', 'daily', 'MCP'], ['Data Cloud', 'daily']]],
+    ['Data & machine learning', 'data science, ML, analytics', [['Python', 'adv', 'scikit-learn · TensorFlow · PyTorch'], ['Excel', 'adv'], ['MATLAB', 'mid'], ['R', 'mid'], ['SQL', 'base'], ['Power BI', 'base']]],
+    ['Lab & imaging', 'research & biotech', [['Confocal & two-photon imaging', 'adv'], ['Arduino', 'mid', 'sensors · biomedical instrumentation']]],
+    ['Software', 'engineering teams', [['Java', 'base'], ['C++', 'base']]],
   ];
-  // one ECG strip: flat line, P wave, QRS spike, T wave, repeated per beat
-  const ecg = (beats, amp) => {
-    const w = 300 / beats, base = 42, pts = [];
-    for (let b = 0; b < beats; b++) {
-      const x = b * w;
-      [[0, 0], [.18, 0], [.24, -amp * .12], [.3, 0], [.4, 0], [.44, amp * .2], [.5, -amp], [.56, amp * .35], [.6, 0], [.72, 0], [.8, -amp * .22], [.9, 0], [1, 0]]
-        .forEach(([t, dy]) => pts.push(`${(x + t * w).toFixed(1)},${(base + dy).toFixed(1)}`));
-    }
-    return 'M' + pts.join(' L');
-  };
   const XP = [
     { a: 'yellow', when: 'Apr 2026 – now', h: 'App/Cloud Support Associate', org: 'Accenture · Lisbon',
       p: 'Salesforce work on Marketing Cloud, Marketing Cloud Personalization (MCP) and Data Cloud.',
@@ -638,18 +630,25 @@
         <div class="row"><span class="when">2020 – 2023</span><div><h3>BSc Biomedical Engineering</h3><p class="org">Instituto Superior Técnico · GPA 15/20</p></div></div>
       </div>` },
     skills: { t: 'Skills', bg: 'var(--bg)', dark: true, html: () => `
-      <p class="lead">Skills on the patient monitor: the stronger and faster the pulse, the more I use it.</p>
-      <div class="mon" role="list">
-        <div class="mon-head" aria-hidden="true"><span>channel</span><span>trace</span><span>reading</span></div>
-        ${VITALS.map(([group, list]) => `<p class="mon-group">${group}</p>` + list.map(([name, lvl, note]) => {
-          const L = LEVELS[lvl];
-          return `<div class="mon-ch" role="listitem" style="--a: var(--${L.c})" aria-label="${name}: ${L.label}">
-            <span class="mon-name">${name}${note ? `<small>${note}</small>` : ''}</span>
-            <svg class="mon-trace" viewBox="0 0 300 60" preserveAspectRatio="none" aria-hidden="true"><path pathLength="100" d="${ecg(L.beats, L.amp)}"/></svg>
-            <span class="mon-read"><b>${L.bpm}</b><i>bpm</i><em>${L.label}</em></span>
-          </div>`; }).join('')).join('')}
-      </div>
-      <p class="mon-legend">${Object.values(LEVELS).map(L => `<span style="--a: var(--${L.c})"><i></i>${L.bpm} bpm · ${L.label}</span>`).join('')}</p>
+      <p class="lead">Lab results, read in five seconds.</p>
+      <article class="lab" aria-label="Skills report">
+        <header class="lab-top">
+          <div><span>Patient</span><b>Inês Marques</b></div>
+          <div><span>Specimen</span><b>CV · Sept 2026</b></div>
+          <div><span>Diagnosis</span><b>Biomedical engineer, data-positive</b></div>
+        </header>
+        <div class="lab-cols" aria-hidden="true"><span>Test</span><span>Result</span><span></span><span>Flag</span></div>
+        ${PANELS.map(([group, ref, list]) => `<section class="lab-group">
+          <h3>${group}<small>Reference: ${ref}</small></h3>
+          ${list.map(([name, lvl, note]) => { const L = LEVELS[lvl]; return `<div class="lab-row" style="--a: var(--${L.c})">
+            <span class="lab-name">${name}${note ? `<small>${note}</small>` : ''}</span>
+            <span class="lab-res">${L.label}</span>
+            <span class="lab-bar" aria-hidden="true">${[1, 2, 3, 4].map(k => `<i${k <= L.bars ? ' class="on"' : ''}></i>`).join('')}</span>
+            <span class="lab-flag">${L.flag ? '<b>HIGH</b>' : ''}</span>
+          </div>`; }).join('')}
+        </section>`).join('')}
+        <p class="lab-foot">HIGH = above the usual range for a recent graduate. Levels as stated in my CV.</p>
+      </article>
       <div class="rows" style="margin-top: 7vh">
         <div class="row"><span class="when">Domain</span><div class="chips">${['AI & machine learning','Biomedical & health data systems','Clinical informatics','HL7 / FHIR','Data engineering & analytics','GMP & GDPR','Stakeholder analytics'].map(s => `<span class="chip">${s}</span>`).join('')}</div></div>
         <div class="row"><span class="when">Languages</span><div class="chips">${['Portuguese · native','English · C1 (Cambridge CAE)','French · B1'].map(s => `<span class="chip">${s}</span>`).join('')}</div></div>
