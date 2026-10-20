@@ -128,13 +128,10 @@
   .hx { position: relative; }
   .hx-row { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 120px minmax(0, 1fr); }
   @media (min-width: 701px) { .hx-row + .hx-row { margin-top: -70px; } }
-  .hx-svg { position: absolute; top: 0; left: 50%; width: 120px; transform: translateX(-50%); overflow: visible; pointer-events: none; }
-  .hx-svg path, .hx-svg line { fill: none; }
-  .hx-s1 { stroke: var(--green); stroke-width: 3; }
-  .hx-s2 { stroke: var(--pink); stroke-width: 3; }
-  .hx-svg line { stroke: var(--line); stroke-width: 2; }
-  .hx-turn { transform-box: view-box; transform-origin: 50% 50%; animation: hx-spin 6s ease-in-out infinite alternate; }
-  @keyframes hx-spin { from { transform: scaleX(1); } to { transform: scaleX(-1); } }
+  .hx-cv { position: absolute; top: 0; left: 50%; width: 150px; transform: translateX(-50%); cursor: grab; touch-action: pan-y; }
+  .hx-cv:active { cursor: grabbing; }
+  .hx-row { pointer-events: none; }
+  .hx-card { pointer-events: auto; }
   .hx-node { position: absolute; left: 50%; top: 86px; width: 22px; height: 22px; margin: -11px 0 0 -11px; background: var(--a); border: 3px solid var(--bg); box-shadow: 0 0 0 1.5px var(--a); z-index: 1; }
   .hx-row.now .hx-node::after { content: ""; position: absolute; inset: -9px; border: 1.5px solid var(--a); animation: hx-ping 2.2s ease-out infinite; }
   @keyframes hx-ping { from { opacity: .9; transform: scale(.6); } to { opacity: 0; transform: scale(1.5); } }
@@ -152,13 +149,13 @@
   .hx-row.r .hx-card .shots { justify-content: flex-start; }
   @media (max-width: 700px) {
     .hx-row { grid-template-columns: 64px minmax(0, 1fr); }
-    .hx-svg { left: 32px; width: 64px; }
+    .hx-cv { left: 32px; width: 64px; }
     .hx-node { left: 32px; top: 78px; }
     .hx-card, .hx-row.r .hx-card { grid-column: 2; text-align: left; padding: 26px 0 26px 14px; }
     .hx-card p { margin: 0; }
     .hx-card .shots { justify-content: flex-start; }
   }
-  @media (prefers-reduced-motion: reduce) { .hx-turn, .hx-row.now .hx-node::after { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { .hx-row.now .hx-node::after { animation: none; } }
 
   /* skills lab report: a paper report on the dark panel, high contrast */
   .lab { background: var(--sand); color: var(--dark); border-radius: 4px; padding: 22px 24px 18px; max-width: 920px; }
@@ -554,7 +551,7 @@
     experience: { t: 'Experience', bg: 'var(--bg)', dark: true, html: () => `
       <p class="lead">From national health policy to deep-learning pipelines: roles across research, regulated industry and consulting.</p>
       <ol class="hx" id="hx" aria-label="Experience timeline, most recent first">
-        <svg class="hx-svg" aria-hidden="true"><g class="hx-turn"></g></svg>
+        <canvas class="hx-cv" aria-hidden="true"></canvas>
         ${XP.map((x, n) => `<li class="hx-row${n % 2 ? ' r' : ''}${n === 0 ? ' now' : ''}" style="--a: var(--${x.a})">
           <span class="hx-node" aria-hidden="true"></span>
           <div class="hx-card">
@@ -567,32 +564,67 @@
         </li>`).join('')}
       </ol>`,
       init() {
-        // draw the double helix through the role nodes: strands cross at every node, rungs in between
-        const ol = document.getElementById('hx'), svg = ol.querySelector('.hx-svg'), g = svg.querySelector('g');
-        const draw = () => {
-          if (!ol.isConnected) { removeEventListener('resize', draw); return; }
-          const box = ol.getBoundingClientRect(), W = svg.getBoundingClientRect().width, A = W * 0.36, cx = W / 2;
-          const ys = [...ol.querySelectorAll('.hx-node')].map(n => { const r = n.getBoundingClientRect(); return r.top + r.height / 2 - box.top; });
-          const stops = [0, ...ys, box.height];
-          svg.setAttribute('viewBox', `0 0 ${W} ${box.height}`); svg.setAttribute('height', box.height);
-          // several half-turns per gap (about one every 110px) so it reads as DNA; any whole number of half-turns lands on a crossing at the node
-          const segs = stops.slice(1).map((y1, i) => ({ y0: stops[i], d: y1 - stops[i], n: Math.max(1, Math.round((y1 - stops[i]) / 110)) }));
-          let par = 1;
-          segs.forEach(sg => { sg.par = par; if (sg.n % 2) par = -par; });
-          const strand = sgn => segs.map((sg, i) => {
-            const pts = [], steps = sg.n * 16;
-            for (let k = 0; k <= steps; k++) { const t = k / steps; pts.push(`${(cx + sgn * sg.par * A * Math.sin(Math.PI * sg.n * t)).toFixed(1)},${(sg.y0 + sg.d * t).toFixed(1)}`); }
-            return (i ? 'L' : 'M') + pts.join(' L');
-          }).join(' ');
-          const rungs = segs.map(sg => Array.from({ length: sg.n * 3 }, (_, j) => {
-            const t = (j + 0.5) / (sg.n * 3), y = sg.y0 + sg.d * t, w = A * Math.abs(Math.sin(Math.PI * sg.n * t));
-            return w < 6 ? '' : `<line x1="${(cx - w).toFixed(1)}" y1="${y.toFixed(1)}" x2="${(cx + w).toFixed(1)}" y2="${y.toFixed(1)}"/>`;
-          }).join('')).join('');
-          g.innerHTML = rungs + `<path class="hx-s1" d="${strand(1)}"/><path class="hx-s2" d="${strand(-1)}"/>`;
+        // a 3D double helix on canvas: strands shaded by depth, base-pair rungs, each role a coloured base pair under its node
+        const ol = document.getElementById('hx'), cv = ol.querySelector('.hx-cv'), ctx = cv.getContext('2d'), panelEl = document.getElementById('panel');
+        const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+        const C1 = css('--green'), C2 = css('--pink');
+        const dpr = Math.min(devicePixelRatio || 1, 2), P = 240;
+        let W = 0, H = 0, nodes = [], rot = 0, last = 0, drag = null;
+        const layout = () => {
+          const box = ol.getBoundingClientRect();
+          W = cv.getBoundingClientRect().width; H = box.height;
+          cv.width = W * dpr; cv.height = H * dpr; cv.style.height = H + 'px';
+          nodes = [...ol.querySelectorAll('.hx-row')].map(li => {
+            const r = li.querySelector('.hx-node').getBoundingClientRect(), a = li.style.getPropertyValue('--a').trim();
+            return { y: r.top + r.height / 2 - box.top, c: a.startsWith('var(') ? css(a.slice(4, -1)) : a };
+          });
         };
-        draw();
-        ol.querySelectorAll('img').forEach(im => im.complete || im.addEventListener('load', draw, { once: true }));
-        addEventListener('resize', draw);
+        const draw = () => {
+          const box = ol.getBoundingClientRect(), y0 = Math.max(0, -box.top - 40), y1 = Math.min(H, innerHeight - box.top + 40);
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+          if (y1 <= y0) return;
+          const cx = W / 2, R = W * 0.36, at = (y, off) => { const t = rot + Math.PI * 2 * y / P + off; return { x: cx + R * Math.cos(t), z: Math.sin(t) }; };
+          // strands: the half facing the viewer is drawn last, brighter and thicker
+          const seg = (y, off, front) => {
+            const a = at(y, off), b = at(y + 4, off), d = (a.z + b.z) / 2;
+            if ((d > 0) !== front) return;
+            ctx.globalAlpha = 0.3 + 0.7 * (d + 1) / 2; ctx.lineWidth = 2 + 2.2 * (d + 1) / 2;
+            ctx.beginPath(); ctx.moveTo(a.x, y); ctx.lineTo(b.x, y + 4); ctx.stroke();
+          };
+          const strands = front => {
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = C1; for (let y = y0; y < y1; y += 4) seg(y, 0, front);
+            ctx.strokeStyle = C2; for (let y = y0; y < y1; y += 4) seg(y, Math.PI, front);
+          };
+          const rung = (y, c1, c2, w, a) => {
+            const p = at(y, 0), q = at(y, Math.PI);
+            ctx.globalAlpha = a; ctx.lineWidth = w;
+            ctx.strokeStyle = c1; ctx.beginPath(); ctx.moveTo(p.x, y); ctx.lineTo(cx, y); ctx.stroke();
+            ctx.strokeStyle = c2; ctx.beginPath(); ctx.moveTo(cx, y); ctx.lineTo(q.x, y); ctx.stroke();
+          };
+          strands(false);
+          for (let y = Math.ceil(y0 / 20) * 20; y < y1; y += 20) rung(y, C1, C2, 1.5, 0.3);
+          nodes.forEach(n => { if (n.y > y0 && n.y < y1) rung(n.y, n.c, n.c, 4, 1); });
+          strands(true);
+          ctx.globalAlpha = 1;
+        };
+        const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const onResize = () => { layout(); draw(); };
+        const tick = t => {
+          if (!ol.isConnected) { removeEventListener('resize', onResize); return; }
+          if (!drag) rot += Math.min(t - last, 50) * 0.0005;
+          last = t; draw(); requestAnimationFrame(tick);
+        };
+        layout(); draw();
+        if (!reduce) requestAnimationFrame(t => { last = t; tick(t); });
+        // scrolling the panel and dragging the helix both turn it
+        let lastScroll = panelEl.scrollTop;
+        panelEl.addEventListener('scroll', () => { rot += (panelEl.scrollTop - lastScroll) * 0.006; lastScroll = panelEl.scrollTop; if (reduce) draw(); }, { passive: true });
+        cv.addEventListener('pointerdown', e => { drag = { x: e.clientX, r: rot }; cv.setPointerCapture(e.pointerId); });
+        cv.addEventListener('pointermove', e => { if (drag) { rot = drag.r + (e.clientX - drag.x) * 0.02; if (reduce) draw(); } });
+        cv.addEventListener('pointerup', () => { drag = null; });
+        ol.querySelectorAll('img').forEach(im => im.complete || im.addEventListener('load', onResize, { once: true }));
+        addEventListener('resize', onResize);
       } },
     thesis: { t: 'Thesis', bg: 'var(--bg)', dark: true, html: () => `
       <div class="twrap"><div class="thesis-row">
