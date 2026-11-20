@@ -1,5 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="description" content="Inês Marques, biomedical engineer in Lisbon: research, health data and applied AI."><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Inês Marques Home</title>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="description" content="Inês Marques, biomedical engineer in Lisbon: research, health data and applied AI."><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><title>Inês Marques · Biomedical Engineer</title><link rel="alternate" hreflang="en" href="https://inespemarques.github.io/?lang=en"><link rel="alternate" hreflang="pt" href="https://inespemarques.github.io/?lang=pt"></head><body>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
   /* Layout: a full-bleed board of flat-colour tetromino pieces that drop in on load; hovering turns a piece into a photo (max 3 open); labelled pieces open a section panel */
@@ -35,7 +34,9 @@
   header.top .who { color: var(--ink); grid-column: 1 / -1; }
   @media (min-width: 760px) { header.top .who { grid-column: auto; } }
   header.top .what { color: var(--ink-dim); }
-  header.top button { font: inherit; color: var(--ink); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+  header.top button, header.top .acts a { font: inherit; color: var(--ink); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+  header.top .acts { display: flex; gap: 6px 18px; flex-wrap: wrap; justify-content: flex-end; align-items: baseline; white-space: nowrap; }
+  header.top .acts .cvdl { color: var(--green); }
   @media (min-width: 760px) {
     header.top { grid-template-columns: 1fr 1fr auto; padding-inline: 12px; }
   }
@@ -292,7 +293,11 @@
 <header class="top">
   <span class="who">inês marques, biomedical engineer</span>
   <span class="what" id="tagline">who counted 100,000 neurons in a fish brain smaller than a pinhead</span>
-  <button type="button" data-open="about">about</button>
+  <nav class="acts" aria-label="Site">
+    <a class="cvdl" id="cv-dl" href="cv/Ines_Marques_CV_EN.pdf" download>download CV</a>
+    <button type="button" data-open="about" id="about-btn">about</button>
+    <button type="button" id="lang-btn" lang="pt" aria-label="Ver em português">PT</button>
+  </nav>
 </header>
 
 <main>
@@ -310,8 +315,43 @@
 <script>
 (() => {
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  /* language: English by default, Portuguese when the browser is set to Portuguese; ?lang=en|pt or the header toggle overrides and is remembered */
+  const LANG = (() => {
+    let q = new URLSearchParams(location.search).get('lang');
+    if (q === 'pt' || q === 'en') { try { localStorage.setItem('lang', q); } catch (e) {} return q; }
+    try { q = localStorage.getItem('lang'); } catch (e) {}
+    if (q === 'pt' || q === 'en') return q;
+    const l = (navigator.languages && navigator.languages[0]) || navigator.language || '';
+    return /^pt\b/i.test(l) ? 'pt' : 'en';
+  })();
+  const PT = LANG === 'pt';
+  const t = (en, pt) => PT ? pt : en;
+  const CV_EN = 'cv/Ines_Marques_CV_EN.pdf', CV_PT = 'cv/Ines_Marques_CV_PT.pdf';
+  const CVLINKS = `<a href="${CV_EN}" download>English (PDF)</a> · <a href="${CV_PT}" download lang="pt">Português (PDF)</a>`;
+  document.documentElement.lang = PT ? 'pt-PT' : 'en';
+  document.title = t('Inês Marques · Biomedical Engineer', 'Inês Marques · Engenheira Biomédica');
+  if (PT) {
+    document.querySelector('header.top .who').textContent = 'inês marques, engenheira biomédica';
+    const cvdl = document.getElementById('cv-dl'); cvdl.href = CV_PT; cvdl.textContent = 'descarregar CV';
+    document.getElementById('about-btn').textContent = 'sobre';
+    const lb = document.getElementById('lang-btn'); lb.textContent = 'EN'; lb.lang = 'en'; lb.setAttribute('aria-label', 'View in English');
+    document.getElementById('board').setAttribute('aria-label', 'Tabuleiro do portefólio: passe o cursor por uma peça para ver uma foto, escolha uma etiqueta para abrir uma secção');
+    const hint = document.querySelectorAll('.hint span');
+    hint[0].textContent = 'Passe o cursor pelas peças para revelar fotos. Clique numa etiqueta para a abrir.';
+    hint[1].textContent = 'Lisboa, Portugal';
+    document.getElementById('close').textContent = 'Fechar';
+  }
+  document.getElementById('lang-btn').addEventListener('click', () => { location.href = location.pathname + '?lang=' + (PT ? 'en' : 'pt'); });
   // a different tagline on every visit, never the same one twice in a row
-  const TAGLINES = [
+  const TAGLINES = PT ? [
+    'que contou 100 000 neurónios num cérebro de peixe mais pequeno do que a cabeça de um alfinete',
+    'que passou dos palcos de ballet para cérebros de peixe-zebra e dados nacionais de saúde',
+    'que foi campeã nacional de remo e agora treina redes neuronais',
+    'que dançou no Royal Albert Hall e agora constrói em Salesforce Data Cloud',
+    'que ensinou um computador a distinguir neurónios',
+    'que ajudou a redesenhar o sistema nacional de vigilância do VIH',
+    'que ganhou um hackathon na Nova SBE e estudou em três países',
+  ] : [
     'who counted 100,000 neurons in a fish brain smaller than a pinhead',
     'who went from ballet stages to zebrafish brains to national health data',
     'who rowed to a national title and now trains neural networks',
@@ -340,17 +380,17 @@
     'jekkhhil',
   ];
   const PIECES = {
-    a: { photo: 'studio', c: 'yellow', label: 'Experience', sec: 'experience', corner: 'tl' },
+    a: { photo: 'studio', c: 'yellow', label: t('Experience', 'Experiência'), sec: 'experience', corner: 'tl' },
     b: { photo: 'barre', c: 'pink' },
-    c: { photo: 'istanbul', c: 'sand', label: 'Education', sec: 'education', corner: 'tr' },
-    d: { photo: 'tulips', c: 'blue', label: 'Thesis', sec: 'thesis', corner: 'br', dark: 1 },
-    e: { photo: 'portrait', c: 'green', label: 'Hobbies', sec: 'hobbies', corner: 'bl' },
+    c: { photo: 'istanbul', c: 'sand', label: t('Education', 'Formação'), sec: 'education', corner: 'tr' },
+    d: { photo: 'tulips', c: 'blue', label: t('Thesis', 'Tese'), sec: 'thesis', corner: 'br', dark: 1 },
+    e: { photo: 'portrait', c: 'green', label: t('Hobbies', 'Hobbies'), sec: 'hobbies', corner: 'bl' },
     f: { photo: 'desert', c: 'orange' },
-    g: { photo: 'wheat', c: 'violet', label: 'Contact', sec: 'contact', corner: 'br', dark: 1 },
-    h: { photo: 'stage-kick', c: 'red', label: 'Skills', sec: 'skills', corner: 'tl', dark: 1 },
-    i: { photo: 'salt-flat', c: 'yellow', label: 'Awards', sec: 'awards', corner: 'br' },
+    g: { photo: 'wheat', c: 'violet', label: t('Contact', 'Contacto'), sec: 'contact', corner: 'br', dark: 1 },
+    h: { photo: 'stage-kick', c: 'red', label: t('Skills', 'Competências'), sec: 'skills', corner: 'tl', dark: 1 },
+    i: { photo: 'salt-flat', c: 'yellow', label: t('Awards', 'Prémios'), sec: 'awards', corner: 'br' },
     j: { photo: 'ski', c: 'pink' },
-    k: { photo: 'festival', c: 'blue', label: 'About', sec: 'about', corner: 'bl', dark: 1 },
+    k: { photo: 'festival', c: 'blue', label: t('About', 'Sobre'), sec: 'about', corner: 'bl', dark: 1 },
     l: { photo: 'friends', c: 'brown' },
   };
   // labelled pieces only show photos that match their section; unlabelled pieces share PHOTOS
@@ -500,7 +540,36 @@
 
   /* ---------- sections ---------- */
   const DIMS = {"rowing-team": [1100, 801], "stage-kick": [720, 719], "accenture-2": [1000, 750], "istanbul": [667, 720], "orger-lab": [799, 200], "wheat": [608, 720], "barre": [720, 538], "stage-arch": [720, 480], "tulips": [543, 646], "friends": [709, 667], "stage-red": [720, 480], "portrait": [480, 720], "salt-flat": [951, 1072], "travel-lagoon": [893, 1100], "travel-valley": [885, 1100], "travel-morocco": [1100, 1098], "accenture-3": [750, 1000], "festival": [720, 480], "travel-smile": [889, 1100], "studio": [720, 540], "travel-machu-group": [902, 1100], "accenture-4": [750, 1000], "desert": [530, 717], "cappadocia": [720, 673], "accenture-1": [1000, 750], "trophies": [720, 540], "ski": [693, 720], "rowing-podium": [1400, 1050], "rowing-medals": [1400, 1050], "rowing-scull": [1400, 1050]};
-  const ALT = {
+  const ALT_PT = {
+    'stage-kick': 'Bailarina a meio de um pontapé alto, com fato preto de lantejoulas e luvas vermelhas',
+    'barre': 'Aula de ballet alinhada na barra, num estúdio luminoso',
+    'stage-arch': 'Companhia de dança a dobrar-se para trás em uníssono, em palco',
+    'studio': 'Grupo de dança a posar num chão vermelho, num estúdio de televisão',
+    'stage-red': 'Companhia de dança com fatos vermelhos a segurar uma pose em palco',
+    'festival': 'Três jovens bailarinas em palco num festival de dança',
+    'portrait': 'Retrato de perto de uma jovem bailarina',
+    'istanbul': 'Interior da Santa Sofia, em Istambul',
+    'cappadocia': 'Vista de um terraço sobre as formações rochosas da Capadócia',
+    'desert': 'Uma formação rochosa isolada num deserto de altitude, sob nuvens',
+    'tulips': 'De bicicleta junto a um campo de túlipas vermelhas',
+    'ski': 'A esquiar numa montanha com neve',
+    'salt-flat': 'Foto de perspetiva forçada num salar: uma pessoa sentada em cima de uma garrafa de vinho',
+    'travel-morocco': 'Pátio com uma fonte de mármore e paredes de azulejos',
+    'travel-lagoon': 'Uma lagoa de montanha com flamingos e nuvens refletidas',
+    'travel-machu-group': 'Grupo de viajantes agachados em frente a Machu Picchu',
+    'travel-valley': 'Um desfiladeiro verde e enevoado, com um rio lá em baixo',
+    'travel-smile': 'Uma criança de chapéu a sorrir perto da câmara',
+    'rowing-podium': 'Pódio de um campeonato de remo indoor, com a bandeira do Ginásio Clube Figueirense',
+    'rowing-medals': 'Entrega de medalhas com bandeiras dos clubes numa prova de remo indoor',
+    'rowing-scull': 'A remar num skiff numa albufeira',
+    'rowing-team': 'Seis colegas de equipa abraçados num pontão junto a uma albufeira, a rir',
+    'accenture-1': 'Equipa no escritório da Accenture em Lisboa',
+    'accenture-2': 'Equipa à porta do campus da Accenture',
+    'accenture-3': 'Colegas num evento de equipa',
+    'accenture-4': 'Equipa na IPN Aceleradora',
+    'orger-lab': 'A equipa do Orger Lab ao ar livre',
+  };
+  const ALT_EN = {
     'stage-kick': 'Dancer mid high kick in a black sequined costume and red gloves',
     'barre': 'Ballet class lined up at the barre in a bright studio',
     'stage-arch': 'Dance company bending backwards in unison on stage',
@@ -529,6 +598,7 @@
     'accenture-4': 'Team at IPN Aceleradora',
     'orger-lab': 'The Orger Lab team outdoors',
   };
+  const ALT = PT ? ALT_PT : ALT_EN;
   const pic = (k, cls) => {
     const d = DIMS[k] || [4, 3];
     return `<img src="${src(k)}" width="${d[0]}" height="${d[1]}" alt="${ALT[k] || ''}" loading="lazy" decoding="async"${cls ? ` class="${cls}"` : ''}>`;
@@ -536,15 +606,21 @@
   const ORGER = '<a href="https://fchampalimaud.org/research/groups/orger" target="_blank" rel="noopener">Orger Lab</a>';
   /* skills as a lab report: levels from the CV (advanced / intermediate / basic); daily = used every day at work */
   const LEVELS = {
-    daily: { label: 'Daily use', bars: 4, flag: 1, c: 'red' },
-    adv: { label: 'Advanced', bars: 4, flag: 1, c: 'green' },
-    mid: { label: 'Working', bars: 3, c: 'yellow' },
-    base: { label: 'Basic', bars: 2, c: 'blue' },
-    native: { label: 'Native', bars: 4, flag: 1, c: 'red' },
-    c1: { label: 'C1 · fluent', bars: 4, flag: 1, c: 'green' },
+    daily: { label: t('Daily use', 'Uso diário'), bars: 4, flag: 1, c: 'red' },
+    adv: { label: t('Advanced', 'Avançado'), bars: 4, flag: 1, c: 'green' },
+    mid: { label: t('Working', 'Intermédio'), bars: 3, c: 'yellow' },
+    base: { label: t('Basic', 'Básico'), bars: 2, c: 'blue' },
+    native: { label: t('Native', 'Nativo'), bars: 4, flag: 1, c: 'red' },
+    c1: { label: t('C1 · fluent', 'C1 · fluente'), bars: 4, flag: 1, c: 'green' },
     a2: { label: 'A2', bars: 1, c: 'blue' },
   };
-  const PANELS = [
+  const PANELS = PT ? [
+    ['Salesforce', 'funções de CRM e dados de marketing', [['Marketing Cloud', 'daily'], ['Marketing Cloud Personalization', 'daily', 'MCP'], ['Data Cloud', 'daily']]],
+    ['Dados e machine learning', 'ciência de dados, ML, análise', [['Python', 'adv', 'scikit-learn · TensorFlow · PyTorch'], ['Excel', 'adv'], ['MATLAB', 'mid'], ['R', 'mid'], ['SQL', 'base'], ['Power BI', 'base']]],
+    ['Laboratório e imagem', 'investigação e biotecnologia', [['Imagiologia confocal e de dois fotões', 'adv'], ['Arduino', 'mid', 'sensores · instrumentação biomédica']]],
+    ['Software', 'equipas de engenharia', [['Java', 'base'], ['C++', 'base']]],
+    ['Línguas', 'equipas internacionais', [['Português', 'native'], ['Inglês', 'c1', 'Cambridge CAE'], ['Francês', 'a2', 'a estudar B1.1']]],
+  ] : [
     ['Salesforce', 'CRM & marketing data roles', [['Marketing Cloud', 'daily'], ['Marketing Cloud Personalization', 'daily', 'MCP'], ['Data Cloud', 'daily']]],
     ['Data & machine learning', 'data science, ML, analytics', [['Python', 'adv', 'scikit-learn · TensorFlow · PyTorch'], ['Excel', 'adv'], ['MATLAB', 'mid'], ['R', 'mid'], ['SQL', 'base'], ['Power BI', 'base']]],
     ['Lab & imaging', 'research & biotech', [['Confocal & two-photon imaging', 'adv'], ['Arduino', 'mid', 'sensors · biomedical instrumentation']]],
@@ -552,7 +628,20 @@
     ['Languages', 'international teams', [['Portuguese', 'native'], ['English', 'c1', 'Cambridge CAE'], ['French', 'a2', 'studying B1.1']]],
   ];
   /* education as a growing neuron: k = soma (cell body), axon, branch (Erasmus) or syn (activity) */
-  const EDU = [
+  const EDU = PT ? [
+    { k: 'soma', part: 'Corpo celular', when: '2020 – 2023', h: 'Licenciatura em Engenharia Biomédica', org: 'Instituto Superior Técnico · Média 15/20' },
+    { k: 'axon', part: 'Axónio', when: '2023 – 2026', h: 'Mestrado em Engenharia Biomédica', org: 'Instituto Superior Técnico · Média 17/20 · Tese 18/20', p: 'Major em Imagem, Biossinais e Instrumentação Biomédica. Minor em IA, Sistemas Autónomos e Robótica, Machine Learning.' },
+    { k: 'branch', part: 'Erasmus', when: 'Finlândia', h: 'Aalto University', org: '5/5', p: 'Risco financeiro, sustentabilidade, sistemas de apoio à decisão, privacidade de dados de saúde e engenharia clínica.' },
+    { k: 'branch', part: 'Erasmus', when: 'Espanha', h: 'Universidad Carlos III de Madrid', org: '17/20', p: 'Business intelligence, análise de dados e escrita científica.' },
+    { label: 'Para além das aulas' },
+    { k: 'syn', when: '2021 – 2024', h: 'Relações Empresariais', org: 'AEIST · Associação dos Estudantes do Técnico', p: 'Angariei patrocínios empresariais para todos os grandes eventos do Técnico Lisboa.' },
+    { k: 'syn', when: '2025', h: 'MedEngine', org: 'IEEE-IST', p: 'Desenhei uma plataforma de óculos inteligentes para deteção de fadiga.' },
+    { k: 'syn', when: '2024', h: 'Coordenadora Cultural', org: 'COENEEB' },
+    { k: 'syn', when: '2024', h: 'Líder de grupo no Slush · Aalto Ventures Programme', org: 'Helsínquia', p: 'Liderei um grupo no Slush, o principal evento de startups da Europa, e criei uma startup de energias renováveis para a ilha de Bioko, na Guiné Equatorial.' },
+    { k: 'syn', when: '2022', h: 'Voluntária', org: 'Web Summit · Lisboa' },
+    { k: 'syn', when: '2021', h: 'Relações Externas', org: 'ANEEB · Associação Nacional de Estudantes de Engenharia Biomédica' },
+    { k: 'syn', when: '2019', h: 'Tesoureira', org: 'Associação de estudantes · Escola Secundária Joaquim de Carvalho', p: 'Geri todo o orçamento, contratei artistas e produzi eventos para os alunos.' },
+  ] : [
     { k: 'soma', part: 'Cell body', when: '2020 – 2023', h: 'BSc Biomedical Engineering', org: 'Instituto Superior Técnico · GPA 15/20' },
     { k: 'axon', part: 'Axon', when: '2023 – 2026', h: 'MSc Biomedical Engineering', org: 'Instituto Superior Técnico · GPA 17/20 · Thesis 18/20', p: 'Major in Imaging, Biosignals & Biomedical Instrumentation. Minor in AI, Autonomous Systems & Robotics, Machine Learning.' },
     { k: 'branch', part: 'Erasmus', when: 'Finland', h: 'Aalto University', org: '5/5', p: 'Financial risk, sustainability, decision support systems, health data privacy and clinical engineering.' },
@@ -566,7 +655,21 @@
     { k: 'syn', when: '2021', h: 'External Relations', org: 'ANEEB · National Association of Biomedical Engineering Students' },
     { k: 'syn', when: '2019', h: 'Treasurer', org: 'Student association · Joaquim de Carvalho Secondary School', p: 'Managed the full budget, booked artists and produced student events.' },
   ];
-  const XP = [
+  const XP = PT ? [
+    { a: 'yellow', when: 'abr 2026 – atual', h: 'App/Cloud Support Associate', org: 'Accenture · Lisboa',
+      p: 'Trabalho em Salesforce: Marketing Cloud, Marketing Cloud Personalization (MCP) e Data Cloud.',
+      shots: ['accenture-1', 'accenture-2', 'accenture-3', 'accenture-4'] },
+    { a: 'green', when: 'mar 2025 – mar 2026', h: 'Investigadora de Tese de Mestrado', org: 'Fundação Champalimaud · ' + ORGER,
+      p: 'Construí um pipeline completo de análise de imagem 3D, da aquisição confocal à segmentação por deep learning e à classificação celular, processando <strong>~100 000 neurónios</strong> em cérebros inteiros de peixe-zebra. Toolkit open-source publicado no GitHub.', },
+    { a: 'orange', when: 'out 2025 – jan 2026', h: 'Engenheira de Validação', org: 'Hikma Pharmaceuticals',
+      p: 'Mapeamentos de temperatura e humidade e qualificação de equipamentos em ambiente GMP, com 100% de conformidade documental nos processos auditados.' },
+    { a: 'blue', when: 'set 2024 – fev 2025', h: 'Estagiária, Estratégia de Saúde Digital', org: 'Direção-Geral da Saúde (DGS)',
+      p: 'Redesenho do sistema nacional de vigilância do VIH rumo à interoperabilidade HL7/FHIR, e um quadro de governação de dados alinhado com o RGPD, integrado no Roteiro 2030 para a Eliminação do VIH.' },
+    { a: 'pink', when: 'mar 2023 – jun 2023', h: 'Estagiária de I&D, Diagnóstico Point-of-Care', org: 'INESC-MN',
+      p: 'Otimização de caudais num sistema lab-on-chip para isolar biomarcadores de cancro a partir de ≤1 µL de sangue: +40% de sensibilidade, −50% de tempo de processamento.' },
+    { a: 'sand', when: 'mar 2021 – mar 2023', h: 'Operações de Negócio', org: 'I.P.M. Lda',
+      p: 'Orçamentos, propostas e documentação de concursos públicos para instituições de saúde e municípios; criei o website da empresa.' },
+  ] : [
     { a: 'yellow', when: 'Apr 2026 – now', h: 'App/Cloud Support Associate', org: 'Accenture · Lisbon',
       p: 'Salesforce work on Marketing Cloud, Marketing Cloud Personalization (MCP) and Data Cloud.',
       shots: ['accenture-1', 'accenture-2', 'accenture-3', 'accenture-4'] },
@@ -581,15 +684,72 @@
     { a: 'sand', when: 'Mar 2021 – Mar 2023', h: 'Business Operations', org: 'I.P.M. Lda',
       p: 'Budgets, quotes and public-tender documentation for healthcare institutions and municipalities; built the company website.' },
   ];
+  const THESIS_PT = () => `<div class="twrap"><div class="thesis-row">
+        <div>
+          <p class="kicker">Investigação · ${ORGER}, Fundação Champalimaud</p>
+          <h3 class="headline">Um cérebro. Cem mil neurónios. Uma célula de cada vez.</h3>
+          <p class="sub">O Vision to Action estuda como a informação visual se transforma em movimento: o que um cérebro decide fazer com o que vê. A minha tese constrói o pipeline que torna esses circuitos contáveis.</p>
+          <div class="stats">
+            <div class="stat"><div class="num">~100k</div><div class="slbl">neurónios segmentados por cérebro</div></div>
+            <div class="stat"><div class="num">0,925</div><div class="slbl">especificidade, validação da linha GABAérgica</div></div>
+            <div class="stat"><div class="num">20k</div><div class="slbl">ROIs 3D em imagiologia funcional in vivo</div></div>
+          </div>
+          <a class="repo" href="https://github.com/inespemarques/transgenicline_validation" target="_blank" rel="noopener"><span class="path">inespemarques/transgenicline_validation</span><span class="go">Ver o toolkit no GitHub →</span></a>
+        </div>
+        <figure class="vid">
+          <video ${reduce ? 'controls' : 'autoplay'} muted loop playsinline preload="auto" aria-label="Animação de um cérebro de larva de peixe-zebra segmentado">
+            <source src="zebrafish-anim.mp4" type="video/mp4">
+          </video>
+          <figcaption class="cap">Imagem confocal do cérebro inteiro de uma larva de peixe-zebra, com populações neuronais segmentadas, animada.</figcaption>
+        </figure>
+      </div>
+      <div style="margin-top: 52px">
+        <p class="prose">O pipeline corre de ponta a ponta: aquisição confocal, segmentação por deep learning (U-Net e variantes de CNN) e classificação celular. Produziu a primeira validação quantitativa, à escala da célula, de uma linha transgénica GABAérgica muito usada, fechando uma lacuna de medição na área, e foi publicado como <a href="https://github.com/inespemarques/transgenicline_validation" target="_blank" rel="noopener">toolkit open-source e reutilizável</a>.</p>
+        <p class="prose">A partir daí, a framework estende-se à imagiologia funcional in vivo: registos de cálcio com dois fotões que ligam tipos celulares geneticamente definidos à dinâmica dos circuitos em tempo real, durante o comportamento. Há um artigo em preparação.</p>
+        <div class="tags">
+          <span class="tag">U-Net</span><span class="tag">segmentação CNN</span><span class="tag">imagiologia de cálcio com dois fotões</span><span class="tag">validação GABAérgica</span><span class="tag">toolkit open-source</span>
+        </div>
+        <p class="cap">Nota 18/20 · Mestrado em Engenharia Biomédica, Instituto Superior Técnico</p>
+      </div>
+      <figure class="fig">
+        ${pic('orger-lab')}
+        <figcaption class="cap">O ${ORGER}: Vision to Action, Fundação Champalimaud.</figcaption>
+      </figure></div>`;
+  const HOBBIES_PT = () => `
+      <p class="lead">Anos de dança ensinaram-me a ensaiar, a ser precisa e a mover-me em sintonia com uma companhia. O remo ensinou-me a puxar ao ritmo de uma tripulação. Viajar ensinou-me a adaptar-me.</p>
+      <div class="hob">
+        <section class="hob-sec" aria-labelledby="h-travel">
+          <div>
+            <h3 id="h-travel">Viagens</h3>
+            <p>Viajar sozinha ensinou-me a adaptar-me: cidades novas, línguas novas e planos que raramente sobrevivem ao primeiro dia. De Istambul e da Capadócia ao salar da Bolívia e a Machu Picchu, com uma viagem de ski sempre que há neve.</p>
+          </div>
+          <div class="mosaic">${['travel-morocco', 'istanbul', 'travel-lagoon', 'cappadocia', 'salt-flat', 'travel-machu-group', 'desert', 'travel-valley', 'tulips', 'travel-smile', 'ski'].map(k => pic(k)).join('')}</div>
+        </section>
+        <section class="hob-sec" aria-labelledby="h-ballet">
+          <div>
+            <h3 id="h-ballet">Ballet</h3>
+            <p class="meta">2009 – 2019</p>
+            <p>Bailarina de competição premiada, com várias classificações no World Dance Cup. Atuei no Royal Albert Hall a convite da Royal Academy of Dance (Reino Unido).</p>
+          </div>
+          <div class="mosaic">${['stage-kick', 'barre', 'stage-arch', 'studio', 'portrait', 'stage-red', 'festival'].map(k => pic(k)).join('')}</div>
+        </section>
+        <section class="hob-sec" aria-labelledby="h-rowing">
+          <div>
+            <h3 id="h-rowing">Remo</h3>
+            <p>Federada pelo Ginásio Clube Figueirense durante 2 anos. Competi na secção de remo do clube (Ginásio Litocar) em 2017. Em janeiro desse ano sagrei-me Campeã Nacional de Remo Indoor (Ergómetro) no escalão de Juvenis, em Gondomar. Em fevereiro de 2017 conquistei ainda a medalha de prata em juvenis e o 2.º lugar geral na classificação combinada no Troféu 1.ªs Remadas, na Barrinha de Mira.</p>
+          </div>
+          <div class="mosaic two">${['rowing-podium', 'rowing-team', 'rowing-medals', 'rowing-scull'].map(k => pic(k)).join('')}</div>
+        </section>
+      </div>`;
   const S = {
-    experience: { t: 'Experience', bg: 'var(--bg)', dark: true, html: () => `
-      <p class="lead">From national health policy to deep-learning pipelines: roles across research, regulated industry and consulting.</p>
-      <ol class="hx" id="hx" aria-label="Experience timeline, most recent first">
+    experience: { t: t('Experience', 'Experiência'), bg: 'var(--bg)', dark: true, html: () => `
+      <p class="lead">${t('From national health policy to deep-learning pipelines: roles across research, regulated industry and consulting.', 'Da política nacional de saúde a pipelines de deep learning: funções em investigação, indústria regulada e consultoria.')}</p>
+      <ol class="hx" id="hx" aria-label="${t('Experience timeline, most recent first', 'Percurso profissional, do mais recente para o mais antigo')}">
         <canvas class="hx-cv" aria-hidden="true"></canvas>
         ${XP.map((x, n) => `<li class="hx-row${n % 2 ? ' r' : ''}${n === 0 ? ' now' : ''}" style="--a: var(--${x.a})">
           <span class="hx-node" aria-hidden="true"></span>
           <div class="hx-card">
-            <span class="when">${n === 0 ? '<b>Now</b> · ' : ''}${x.when}</span>
+            <span class="when">${n === 0 ? `<b>${t('Now', 'Agora')}</b> · ` : ''}${x.when}</span>
             <h3>${x.h}</h3>
             <p class="org">${x.org}</p>
             <p>${x.p}</p>
@@ -660,8 +820,8 @@
         ol.querySelectorAll('img').forEach(im => im.complete || im.addEventListener('load', onResize, { once: true }));
         addEventListener('resize', onResize);
       } },
-    thesis: { t: 'Thesis', bg: 'var(--bg)', dark: true, html: () => `
-      <div class="twrap"><div class="thesis-row">
+    thesis: { t: t('Thesis', 'Tese'), bg: 'var(--bg)', dark: true, html: () => `
+      ${PT ? THESIS_PT() : `<div class="twrap"><div class="thesis-row">
         <div>
           <p class="kicker">Research · ${ORGER}, Champalimaud Foundation</p>
           <h3 class="headline">One brain. A hundred thousand neurons. One cell at a time.</h3>
@@ -691,10 +851,10 @@
       <figure class="fig">
         ${pic('orger-lab')}
         <figcaption class="cap">The ${ORGER}: Vision to Action, Champalimaud Foundation.</figcaption>
-      </figure></div>` },
-    education: { t: 'Education', html: () => `
-      <p class="lead">A neuron that grew: Técnico is the cell body, the master's is the axon, Erasmus branches out to two countries, and everything else lands as synapses.</p>
-      <ol class="nr" id="nr" aria-label="Education, from the first degree to today">
+      </figure></div>`}` },
+    education: { t: t('Education', 'Formação'), html: () => `
+      <p class="lead">${t("A neuron that grew: Técnico is the cell body, the master's is the axon, Erasmus branches out to two countries, and everything else lands as synapses.", 'Um neurónio que cresceu: o Técnico é o corpo celular, o mestrado é o axónio, o Erasmus ramifica-se por dois países e tudo o resto chega como sinapses.')}</p>
+      <ol class="nr" id="nr" aria-label="${t('Education, from the first degree to today', 'Formação, da licenciatura até hoje')}">
         <canvas class="nr-cv" aria-hidden="true"></canvas>
         ${EDU.map(e => e.label ? `<li class="nr-label"><h3 class="sub-h">${e.label}</h3></li>` : `<li class="nr-row" data-k="${e.k}">
           <span class="nr-at" aria-hidden="true"></span>
@@ -770,43 +930,56 @@
         if (reduce) panelEl.addEventListener('scroll', () => draw(0), { passive: true });
         addEventListener('resize', onResize);
       } },
-    skills: { t: 'Skills', bg: 'var(--bg)', dark: true, html: () => `
-      <p class="lead">Lab results, read in five seconds.</p>
-      <article class="lab" aria-label="Skills report">
+    skills: { t: t('Skills', 'Competências'), bg: 'var(--bg)', dark: true, html: () => `
+      <p class="lead">${t('Lab results, read in five seconds.', 'Resultados de análises, lidos em cinco segundos.')}</p>
+      <article class="lab" aria-label="${t('Skills report', 'Relatório de competências')}">
         <header class="lab-top">
-          <div><span>Patient</span><b>Inês Marques</b></div>
-          <div><span>Specimen</span><b>CV · Sept 2026</b></div>
-          <div><span>Diagnosis</span><b>Biomedical engineer, data-positive</b></div>
+          <div><span>${t('Patient', 'Utente')}</span><b>Inês Marques</b></div>
+          <div><span>${t('Specimen', 'Amostra')}</span><b>${t('CV · Sept 2026', 'CV · set 2026')}</b></div>
+          <div><span>${t('Diagnosis', 'Diagnóstico')}</span><b>${t('Biomedical engineer, data-positive', 'Engenheira biomédica, positiva para dados')}</b></div>
         </header>
-        <div class="lab-cols" aria-hidden="true"><span>Test</span><span>Result</span><span></span><span>Flag</span></div>
+        <div class="lab-cols" aria-hidden="true"><span>${t('Test', 'Análise')}</span><span>${t('Result', 'Resultado')}</span><span></span><span>${t('Flag', 'Alerta')}</span></div>
         ${PANELS.map(([group, ref, list]) => `<section class="lab-group">
-          <h3>${group}<small>Reference: ${ref}</small></h3>
+          <h3>${group}<small>${t('Reference', 'Referência')}: ${ref}</small></h3>
           ${list.map(([name, lvl, note]) => { const L = LEVELS[lvl]; return `<div class="lab-row" style="--a: var(--${L.c})">
             <span class="lab-name">${name}${note ? `<small>${note}</small>` : ''}</span>
             <span class="lab-res">${L.label}</span>
             <span class="lab-bar" aria-hidden="true">${[1, 2, 3, 4].map(k => `<i${k <= L.bars ? ' class="on"' : ''}></i>`).join('')}</span>
-            <span class="lab-flag">${L.flag ? '<b>HIGH</b>' : ''}</span>
+            <span class="lab-flag">${L.flag ? `<b>${t('HIGH', 'ALTO')}</b>` : ''}</span>
           </div>`; }).join('')}
         </section>`).join('')}
-        <p class="lab-foot">HIGH = above the usual range for a recent graduate. Levels as stated in my CV; languages on the CEFR scale.</p>
+        <p class="lab-foot">${t('HIGH = above the usual range for a recent graduate. Levels as stated in my CV; languages on the CEFR scale.', 'ALTO = acima do intervalo habitual para uma recém-licenciada. Níveis indicados no meu CV; línguas na escala QECR.')}</p>
       </article>
       <div class="rows" style="margin-top: 7vh">
-        <div class="row"><span class="when">Domain</span><div class="chips">${['AI & machine learning','Biomedical & health data systems','Clinical informatics','HL7 / FHIR','Data engineering & analytics','GMP & GDPR','Stakeholder analytics'].map(s => `<span class="chip">${s}</span>`).join('')}</div></div>
+        <div class="row"><span class="when">${t('Domain', 'Domínio')}</span><div class="chips">${(PT ? ['IA e machine learning','Sistemas biomédicos e de dados de saúde','Informática clínica','HL7 / FHIR','Engenharia e análise de dados','GMP e RGPD','Análise de stakeholders'] : ['AI & machine learning','Biomedical & health data systems','Clinical informatics','HL7 / FHIR','Data engineering & analytics','GMP & GDPR','Stakeholder analytics']).map(s => `<span class="chip">${s}</span>`).join('')}</div></div>
       </div>` },
-    awards: { t: 'Awards', html: `
+    awards: { t: t('Awards', 'Prémios'), html: PT ? `
+      <div class="rows">
+        <div class="row"><span class="when">2022</span><div><h3>1.º lugar e 2500 €</h3><p>Ageas Innovation Hackathon na Nova SBE, categoria "Beyond Insurance".</p></div></div>
+        <div class="row"><span class="when">2026</span><div><h3>Técnico Ignite AI Builders</h3><p>Fundação Santander, uma de 30 pessoas selecionadas a nível nacional.</p></div></div>
+        <div class="row"><span class="when">Dança</span><div><h3>Medalhas no World Dance Cup</h3><p>Atuei no Royal Albert Hall a convite da Royal Academy of Dance.</p></div></div>
+        <div class="row"><span class="when">Liderança</span><div><h3>Líder de grupo no Slush, Helsínquia · relações empresariais na AEIST</h3><p>Aalto Ventures Programme (startup de energias renováveis, ilha de Bioko) e projeto de óculos inteligentes para deteção de fadiga na MedEngine IEEE-IST.</p></div></div>
+      </div>` : `
       <div class="rows">
         <div class="row"><span class="when">2022</span><div><h3>1st place and €2,500</h3><p>Ageas Innovation Hackathon at Nova SBE, "Beyond Insurance" category.</p></div></div>
         <div class="row"><span class="when">2026</span><div><h3>Técnico Ignite AI Builders</h3><p>Santander Foundation, one of 30 selected nationally.</p></div></div>
         <div class="row"><span class="when">Dance</span><div><h3>World Dance Cup medals</h3><p>Performed at the Royal Albert Hall by invitation of the Royal Academy of Dance.</p></div></div>
         <div class="row"><span class="when">Leadership</span><div><h3>Slush group lead, Helsinki · AEIST business relations</h3><p>Aalto Ventures Programme (renewable-energy startup, Bioko Island) and MedEngine IEEE-IST smart-glasses project for fatigue detection.</p></div></div>
       </div>` },
-    about: { t: 'About', html: `
+    about: { t: t('About', 'Sobre'), html: PT ? `
+      <p class="lead">Engenheira biomédica movida pela curiosidade e pela convicção de que os dados podem melhorar quase tudo. Trabalhei em investigação, saúde pública, indústria farmacêutica e consultoria, em três países.</p>
+      <div class="rows">
+        <div class="row"><span class="when">Agora</span><div><p>App/Cloud Support Associate na Accenture, em Lisboa.</p></div></div>
+        <div class="row"><span class="when">Procuro</span><div><p>Funções em engenharia biomédica, dados de saúde e IA aplicada.</p></div></div>
+        <div class="row"><span class="when">CV</span><div><p>${CVLINKS}</p></div></div>
+      </div>` : `
       <p class="lead">Biomedical engineer driven by curiosity and by the conviction that data can improve almost anything. I have worked across research, public health, pharma and consulting, in three countries.</p>
       <div class="rows">
         <div class="row"><span class="when">Now</span><div><p>App/Cloud Support Associate at Accenture, Lisbon.</p></div></div>
         <div class="row"><span class="when">Looking for</span><div><p>Roles in biomedical engineering, health data and applied AI.</p></div></div>
+        <div class="row"><span class="when">CV</span><div><p>${CVLINKS}</p></div></div>
       </div>` },
-    hobbies: { t: 'Hobbies', html: () => `
+    hobbies: { t: 'Hobbies', html: () => PT ? HOBBIES_PT() : `
       <p class="lead">Years of dance taught me rehearsal, precision and moving in sync with a company. Rowing taught me to pull in time with a crew. Travelling taught me to adapt.</p>
       <div class="hob">
         <section class="hob-sec" aria-labelledby="h-travel">
@@ -827,56 +1000,57 @@
         <section class="hob-sec" aria-labelledby="h-rowing">
           <div>
             <h3 id="h-rowing">Rowing</h3>
-            <p>Federada pelo Ginásio Clube Figueirense durante 2 anos. Competi na secção de remo do clube (Ginásio Litocar) em 2017. Em janeiro desse ano sagrei-me Campeã Nacional de Remo Indoor (Ergómetro) no escalão de Juvenis, em Gondomar. Em fevereiro de 2017 conquistei ainda a medalha de prata em juvenis e o 2.º lugar geral na classificação combinada no Troféu 1.ªs Remadas, na Barrinha de Mira.</p>
+            <p>Two years as a registered rower with Ginásio Clube Figueirense, competing for the club's rowing section (Ginásio Litocar) in 2017. That January I became National Indoor Rowing (Ergometer) Champion in the junior category, in Gondomar. In February 2017 I also won the junior silver medal and 2nd place overall in the combined ranking at the Troféu 1.ªs Remadas, at Barrinha de Mira.</p>
           </div>
           <div class="mosaic two">${['rowing-podium', 'rowing-team', 'rowing-medals', 'rowing-scull'].map(k => pic(k)).join('')}</div>
         </section>
       </div>` },
-    contact: { t: 'Contact', bg: 'var(--bg)', dark: true, html: () => `
+    contact: { t: t('Contact', 'Contacto'), bg: 'var(--bg)', dark: true, html: () => `
       <div class="cwrap"><div class="elements" id="el-tiles" aria-live="polite"></div>
-      <div class="el-picker" role="group" aria-label="Spell my name with the periodic table">
-        <span>spell it as</span>
+      <div class="el-picker" role="group" aria-label="${t('Spell my name with the periodic table', 'Escrever o meu nome com a tabela periódica')}">
+        <span>${t('spell it as', 'escrever como')}</span>
         <button type="button" data-spell="0" aria-pressed="true">I·Ne·S</button>
         <button type="button" data-spell="1" aria-pressed="false">In·Es</button>
         <button type="button" data-spell="2" aria-pressed="false">I·N·Es</button>
       </div>
       <p class="el-note" id="el-note"></p>
-      <h3 class="headline" style="max-width: 20ch; margin-top: 26px;">Let's react. Write to me directly.</h3>
-      <p class="sub">Roles in biomedical engineering, research, health data or product: I read every message myself.</p>
+      <h3 class="headline" style="max-width: 20ch; margin-top: 26px;">${t("Let's react. Write to me directly.", 'Vamos criar química. Escreva-me diretamente.')}</h3>
+      <p class="sub">${t('Roles in biomedical engineering, research, health data or product: I read every message myself.', 'Funções em engenharia biomédica, investigação, dados de saúde ou produto: leio pessoalmente todas as mensagens.')}</p>
       <div class="contact-grid">
         <form class="cform" id="cform" novalidate>
           <div class="row2">
-            <div class="field"><label for="c-name">Name</label><input id="c-name" name="name" autocomplete="name" required></div>
+            <div class="field"><label for="c-name">${t('Name', 'Nome')}</label><input id="c-name" name="name" autocomplete="name" required></div>
             <div class="field"><label for="c-email">Email</label><input id="c-email" name="email" type="email" autocomplete="email" required></div>
           </div>
-          <div class="field"><label for="c-subject">Subject</label><input id="c-subject" name="subject" placeholder="Opportunity at …"></div>
-          <div class="field"><label for="c-msg">Message</label><textarea id="c-msg" name="message" required></textarea></div>
-          <div class="hp" aria-hidden="true"><label for="c-honey">Leave empty</label><input id="c-honey" name="_honey" tabindex="-1" autocomplete="off"></div>
-          <button class="send" type="submit" id="c-send">Send message</button>
+          <div class="field"><label for="c-subject">${t('Subject', 'Assunto')}</label><input id="c-subject" name="subject" placeholder="${t('Opportunity at …', 'Oportunidade em …')}"></div>
+          <div class="field"><label for="c-msg">${t('Message', 'Mensagem')}</label><textarea id="c-msg" name="message" required></textarea></div>
+          <div class="hp" aria-hidden="true"><label for="c-honey">${t('Leave empty', 'Deixar vazio')}</label><input id="c-honey" name="_honey" tabindex="-1" autocomplete="off"></div>
+          <button class="send" type="submit" id="c-send">${t('Send message', 'Enviar mensagem')}</button>
           <p class="form-status" id="c-status" hidden></p>
         </form>
         <aside class="direct">
-          <div><h3>Email</h3><p><span class="addr" id="c-addr">inespemarques@gmail.com</span><button type="button" class="copy" id="c-copy">Copy</button></p></div>
+          <div><h3>Email</h3><p><span class="addr" id="c-addr">inespemarques@gmail.com</span><button type="button" class="copy" id="c-copy">${t('Copy', 'Copiar')}</button></p></div>
           <div><h3>LinkedIn</h3><p><a href="https://www.linkedin.com/in/in%C3%AAsmarques200/" target="_blank" rel="noopener">in/inêsmarques200</a></p></div>
-          <div><h3>Based in</h3><p>Lisbon, Portugal.</p></div>
+          <div><h3>CV</h3><p>${CVLINKS}</p></div>
+          <div><h3>${t('Based in', 'Localização')}</h3><p>${t('Lisbon, Portugal.', 'Lisboa, Portugal.')}</p></div>
         </aside>
       </div></div>`,
       init() {
         const SPELLINGS = [
           { tiles: [
-              { z: 53, s: 'I', n: 'Iodine', m: '126.90', c: 'var(--signal)' },
-              { z: 10, s: 'Ne', n: 'Neon', m: '20.180', c: 'var(--heat)', glow: true },
-              { z: 16, s: 'S', n: 'Sulfur', m: '32.06', c: 'var(--yellow)' } ],
-            note: 'Iodine is the contrast agent that makes blood vessels visible in a CT scan. Neon glows when you put energy into it. Sulfur holds proteins together.' },
+              { z: 53, s: 'I', n: t('Iodine', 'Iodo'), m: '126.90', c: 'var(--signal)' },
+              { z: 10, s: 'Ne', n: t('Neon', 'Néon'), m: '20.180', c: 'var(--heat)', glow: true },
+              { z: 16, s: 'S', n: t('Sulfur', 'Enxofre'), m: '32.06', c: 'var(--yellow)' } ],
+            note: t('Iodine is the contrast agent that makes blood vessels visible in a CT scan. Neon glows when you put energy into it. Sulfur holds proteins together.', 'O iodo é o agente de contraste que torna os vasos sanguíneos visíveis numa TAC. O néon brilha quando lhe damos energia. O enxofre mantém as proteínas unidas.') },
           { tiles: [
-              { z: 49, s: 'In', n: 'Indium', m: '114.82', c: 'var(--signal)' },
-              { z: 99, s: 'Es', n: 'Einsteinium', m: '(252)', c: 'var(--heat)' } ],
-            note: 'Indium is in every touchscreen you have used today. Einsteinium was named after Einstein. Two elements, one name.' },
+              { z: 49, s: 'In', n: t('Indium', 'Índio'), m: '114.82', c: 'var(--signal)' },
+              { z: 99, s: 'Es', n: t('Einsteinium', 'Einsténio'), m: '(252)', c: 'var(--heat)' } ],
+            note: t('Indium is in every touchscreen you have used today. Einsteinium was named after Einstein. Two elements, one name.', 'O índio está em todos os ecrãs táteis que usou hoje. O einsténio tem o nome de Einstein. Dois elementos, um nome.') },
           { tiles: [
-              { z: 53, s: 'I', n: 'Iodine', m: '126.90', c: 'var(--signal)' },
-              { z: 7, s: 'N', n: 'Nitrogen', m: '14.007', c: 'var(--heat)' },
-              { z: 99, s: 'Es', n: 'Einsteinium', m: '(252)', c: 'var(--yellow)' } ],
-            note: 'Iodine for imaging, nitrogen for the air we breathe, einsteinium for the ambition. 53 + 7 + 99 = 159.' },
+              { z: 53, s: 'I', n: t('Iodine', 'Iodo'), m: '126.90', c: 'var(--signal)' },
+              { z: 7, s: 'N', n: t('Nitrogen', 'Azoto'), m: '14.007', c: 'var(--heat)' },
+              { z: 99, s: 'Es', n: t('Einsteinium', 'Einsténio'), m: '(252)', c: 'var(--yellow)' } ],
+            note: t('Iodine for imaging, nitrogen for the air we breathe, einsteinium for the ambition. 53 + 7 + 99 = 159.', 'Iodo para a imagiologia, azoto para o ar que respiramos, einsténio para a ambição. 53 + 7 + 99 = 159.') },
         ];
         const spell = i => {
           const sp = SPELLINGS[i], box = document.getElementById('el-tiles');
@@ -886,7 +1060,7 @@
             d.className = 'el' + (t.glow ? ' glow' : '') + (t.hat ? ' hat' : '');
             d.style.setProperty('--c', t.c);
             d.style.animationDelay = (k * 90) + 'ms';
-            d.setAttribute('aria-label', t.n + ', element ' + t.z);
+            d.setAttribute('aria-label', t.n + (PT ? ', elemento ' : ', element ') + t.z);
             d.innerHTML = '<div class="z"><span>' + t.z + '</span><span>' + t.m + '</span></div><div class="sym">' + t.s + '</div><div class="nm">' + t.n + '</div>';
             box.appendChild(d);
           });
@@ -900,7 +1074,7 @@
         const form = document.getElementById('cform'), statusEl = document.getElementById('c-status'), sendBtn = document.getElementById('c-send');
         const selectAddr = () => { const r = document.createRange(); r.selectNodeContents(document.getElementById('c-addr')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); };
         const copyText = (text, btn) => {
-          const done = () => { const o = btn.textContent; btn.textContent = 'Copied'; setTimeout(() => { btn.textContent = o; }, 1600); };
+          const done = () => { const o = btn.textContent; btn.textContent = t('Copied', 'Copiado'); setTimeout(() => { btn.textContent = o; }, 1600); };
           try { navigator.clipboard.writeText(text).then(done, selectAddr); } catch (e) { selectAddr(); }
         };
         document.getElementById('c-copy').addEventListener('click', function () { copyText(TO, this); });
@@ -912,15 +1086,15 @@
                 email = document.getElementById('c-email').value.trim(),
                 subject = document.getElementById('c-subject').value.trim(),
                 msg = document.getElementById('c-msg').value.trim();
-          if (!name || !msg || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { show('err', 'Please add your name, a valid email and a message.'); return; }
-          sendBtn.disabled = true; sendBtn.textContent = 'Sending…';
+          if (!name || !msg || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { show('err', t('Please add your name, a valid email and a message.', 'Indique o seu nome, um email válido e uma mensagem.')); return; }
+          sendBtn.disabled = true; sendBtn.textContent = t('Sending…', 'A enviar…');
           const payload = { name, email, message: msg, _subject: 'Portfolio: ' + (subject || 'message from ' + name), _replyto: email, _template: 'table', _captcha: 'false' };
           fetch('https://formsubmit.co/ajax/' + TO, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(payload) })
             .then(r => r.json())
             .then(res => {
               if (res && (res.success === true || res.success === 'true')) {
                 form.reset();
-                show('ok', 'Sent. Thank you, ' + name.split(' ')[0].replace(/[<>&]/g, '') + '. I will reply to ' + email.replace(/[<>&]/g, '') + '.');
+                show('ok', t('Sent. Thank you, ', 'Enviado. Obrigada, ') + name.split(' ')[0].replace(/[<>&]/g, '') + t('. I will reply to ', '. Vou responder para ') + email.replace(/[<>&]/g, '') + '.');
               } else throw new Error('not sent');
             })
             .catch(() => {
@@ -931,10 +1105,10 @@
                 const i = document.createElement('input'); i.type = 'hidden'; i.name = k; i.value = v; f.appendChild(i);
               });
               document.body.appendChild(f);
-              show('ok', 'Sending…');
+              show('ok', t('Sending…', 'A enviar…'));
               f.submit();
             })
-            .then(() => { sendBtn.disabled = false; sendBtn.textContent = 'Send message'; });
+            .then(() => { sendBtn.disabled = false; sendBtn.textContent = t('Send message', 'Enviar mensagem'); });
         });
       } },
   };
@@ -968,7 +1142,7 @@
     history.replaceState(null, '', location.pathname);
     openPanel('contact', PIECES.g);
     const st = document.getElementById('c-status');
-    st.className = 'form-status ok'; st.textContent = 'Sent. Thank you, I will reply soon.'; st.hidden = false;
+    st.className = 'form-status ok'; st.textContent = t('Sent. Thank you, I will reply soon.', 'Enviado. Obrigada, respondo em breve.'); st.hidden = false;
   }
 })();
 </script>
